@@ -1183,7 +1183,8 @@ function initFirebase(cfg){
       firebase.initializeApp(cfg);
     }
     db=firebase.firestore();
-    storage=firebase.storage();
+    // Storage es opcional — solo si está activado en el proyecto
+    try{ storage=firebase.storage(); }catch(es){ storage=null; }
     setSyncSt('syncing');
     return true;
   }catch(e){
@@ -1268,6 +1269,8 @@ async function cargarFirebase(){
   setSyncSt('syncing');
   let snap;
   try{
+    // Forzar conexión online antes de consultar
+    try{ await db.enableNetwork(); }catch(en){}
     snap=await Promise.race([
       db.collection('encuestas').get(),
       new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),8000))
