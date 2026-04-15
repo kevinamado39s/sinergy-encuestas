@@ -1267,7 +1267,11 @@ async function cargarFirebase(){
   _loaded=true;
   setSyncSt('syncing');
   try{
-    const snap=await db.collection('encuestas').orderBy('fecha','desc').get();
+    // Sin orderBy para evitar requerir índice en Firestore nuevo
+    const snap=await Promise.race([
+      db.collection('encuestas').get(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),15000))
+    ]);
     if(!snap.empty){
       // Los registros remotos ya incluyen URLs de fotos (Storage)
       const remoto=snap.docs.map(d=>d.data());
@@ -1296,8 +1300,20 @@ function saveFirebaseConfig(){
   const raw=document.getElementById('in-fbconfig').value.trim();
   if(!raw){alert('Pega la configuración de Firebase.');return;}
   let cfg;
-  try{cfg=JSON.parse(raw);}
-  catch(e){alert('⚠️ El JSON no es válido. Revisa que esté bien copiado.');return;}
+  try{
+    // Intentar JSON estricto primero
+    cfg=JSON.parse(raw);
+  }catch(e){
+    try{
+      // Aceptar objeto JS con keys sin comillas (formato Firebase "Config")
+      const normalized=raw
+        .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g,'$1"$2":')
+        .replace(/,\s*}/g,'}');
+      cfg=JSON.parse(normalized);
+    }catch(e2){
+      alert('⚠️ El JSON no es válido. Revisa que esté bien copiado.');return;
+    }
+  }
   if(!cfg.apiKey||!cfg.projectId){alert('⚠️ Falta apiKey o projectId en la configuración.');return;}
   localStorage.setItem(FB_KEY,JSON.stringify(cfg));
   closeURL();
