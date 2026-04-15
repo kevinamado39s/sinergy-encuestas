@@ -1266,26 +1266,32 @@ async function cargarFirebase(){
   if(!db||_loaded)return;
   _loaded=true;
   setSyncSt('syncing');
+  let snap;
   try{
-    // Sin orderBy para evitar requerir índice en Firestore nuevo
-    const snap=await Promise.race([
+    snap=await Promise.race([
       db.collection('encuestas').get(),
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),15000))
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),8000))
     ]);
+  }catch(e){
+    console.error('Firebase timeout/error:',e.message);
+    setSyncSt('error');
+    renderHist(); renderRes();
+    return;
+  }
+  try{
     if(!snap.empty){
-      // Los registros remotos ya incluyen URLs de fotos (Storage)
       const remoto=snap.docs.map(d=>d.data());
       localStorage.setItem(KEY,JSON.stringify(remoto));
     } else if(getData().length){
-      // Subir registros locales a Firestore (con fotos a Storage)
       const local=getData();
       for(const r of local){ await fbSave(r); }
     }
     setSyncSt('ok');
   }catch(e){
-    console.error('Error cargando Firebase:',e);
+    console.error('Error procesando Firebase:',e);
     setSyncSt('error');
   }
+  renderHist(); renderRes();
 }
 
 /* ──────────── CONFIG FIREBASE ──────────── */
