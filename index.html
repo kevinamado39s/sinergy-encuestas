@@ -1365,12 +1365,13 @@ function calcDuracion(ini, fin){
 /* ──────────── GOOGLE SHEETS SYNC ──────────── */
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDc9Oy9BpEAR-6HeEoizYj8JSNfkaiqeMepVFvlEQLnw6TCim5SWfAqF7pv5-dTxbG/exec';
 const GAS_KEY = 'sinergy_gas_url';
+const QUEUE_KEY = 'sinergy_sync_queue';
 
 function setSyncSt(s){
   const el=document.getElementById('sync-st');
   if(!el)return;
   const m={syncing:['sic','🔄 Sincronizando'],ok:['ok-c','✅ Sheets OK'],
-           error:['err-c','⚠️ Sin conexión'],local:['loc-c','⚡ Local']};
+           error:['err-c','⚠️ Sin conexión'],local:['loc-c','⚡ Local'],queue:['sic','🕐 En cola...']};
   const [cls,txt]=m[s]||m.local;
   el.className=cls;el.textContent=txt;
 }
@@ -1379,17 +1380,43 @@ function getGasUrl(){
   return localStorage.getItem(GAS_KEY)||GAS_URL;
 }
 
+function getQueue(){try{return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');}catch(e){return[];}}
+function setQueue(q){localStorage.setItem(QUEUE_KEY,JSON.stringify(q));}
+function addToQueue(p){const q=getQueue();q.push(p);setQueue(q);}
+
+async function gasRequest(payload){
+  const url=getGasUrl();
+  if(!url)return false;
+  try{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),15000);
+    const qs=encodeURIComponent(JSON.stringify(payload));
+    const res=await fetch(url+'?data='+qs,{method:'GET',signal:ctrl.signal});
+    clearTimeout(timer);
+    const j=await res.json();
+    return j.ok===true;
+  }catch(e){console.warn('GAS request failed:',e.message);return false;}
+}
+
+async function flushQueue(){
+  const q=getQueue();
+  if(!q.length)return;
+  setSyncSt('syncing');
+  const failed=[];
+  for(const item of q){const ok=await gasRequest(item);if(!ok)failed.push(item);}
+  setQueue(failed);
+  if(!failed.length)setSyncSt('ok');else setSyncSt('queue');
+}
+
 // Guardar o actualizar una fila en Sheets
 async function fbSave(record){
   const url=getGasUrl();
   if(!url){setSyncSt('local');return;}
   setSyncSt('syncing');
-  try{
-    const payload=encodeURIComponent(JSON.stringify({action:'save',record:flatRecord(record)}));
-    const res=await fetch(url+'?data='+payload,{method:'GET'});
-    const j=await res.json();
-    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
-  }catch(e){console.error('GAS save error:',e);setSyncSt('error');}
+  const payload={action:'save',record:flatRecord(record)};
+  const ok=await gasRequest(payload);
+  if(ok){setSyncSt('ok');}
+  else{addToQueue(payload);setSyncSt('queue');console.warn('En cola para reintento.');}
 }
 
 
@@ -1398,12 +1425,9 @@ async function fbDelete(id){
   const url=getGasUrl();
   if(!url)return;
   setSyncSt('syncing');
-  try{
-    const payload=encodeURIComponent(JSON.stringify({action:'delete',id:String(id)}));
-    const res=await fetch(url+'?data='+payload,{method:'GET'});
-    const j=await res.json();
-    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
-  }catch(e){console.error('GAS delete error:',e);setSyncSt('error');}
+  const payload={action:'delete',id:String(id)};
+  const ok=await gasRequest(payload);
+  if(ok){setSyncSt('ok');}else{addToQueue(payload);setSyncSt('queue');}
 }
 
 
@@ -1414,28 +1438,33 @@ async function cargarFirebase(){
   const url=getGasUrl();
   if(!url){setSyncSt('local');renderHist();renderRes();return;}
   setSyncSt('syncing');
+  // Vaciar cola de pendientes primero
+  await flushQueue();
   try{
     const ctrl=new AbortController();
-    const timer=setTimeout(()=>ctrl.abort(),10000);
-    const res=await fetch(url+'?t='+Date.now(),{signal:ctrl.signal});
+    const timer=setTimeout(()=>ctrl.abort(),15000);
+    const res=await fetch(url+'?t='+Date.now(),{method:'GET',signal:ctrl.signal});
     clearTimeout(timer);
     const j=await res.json();
-    if(j.ok && j.data && j.data.length){
-      // Mapear columnas del Sheet a campos internos
+    if(j.ok && Array.isArray(j.data)){
       const mapped=j.data.map(function(row){return sheetRowToRecord(row);});
-      localStorage.setItem(KEY,JSON.stringify(mapped));
-      setSyncSt('ok');
-    } else if(getData().length){
-      // Subir registros locales a Sheets
+      const localData=getData();
+      const sheetIds=new Set(mapped.map(function(r){return String(r.id);}));
+      // Conservar registros locales que no están en Sheets aún
+      const soloLocales=localData.filter(function(r){return !sheetIds.has(String(r.id));});
+      localStorage.setItem(KEY,JSON.stringify([...mapped,...soloLocales]));
+      // Subir al Sheet los que solo estaban en local
+      for(const r of soloLocales){ await fbSave(r); }
+      setSyncSt(getQueue().length?'queue':'ok');
+    } else {
+      // Sheet vacío o error: subir todo local
       const local=getData();
       for(const r of local){ await fbSave(r); }
-      setSyncSt('ok');
-    } else {
-      setSyncSt('ok');
+      setSyncSt(getQueue().length?'queue':'ok');
     }
   }catch(e){
     console.error('GAS load error:',e.message);
-    setSyncSt('error');
+    setSyncSt(getQueue().length?'queue':'error');
   }
   renderHist();renderRes();
 }
