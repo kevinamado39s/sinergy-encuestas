@@ -355,10 +355,10 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-cobro">
       </div>
       <div class="fld">
-        <label>¿Ha presentado fallas después de la visita del técnico? <span class="req">*</span></label>
+        <label>¿El servicio quedó funcionando sin fallas? <span class="req">*</span></label>
         <div class="opts">
-          <button type="button" class="opt-btn" onclick="selOpt('f-fallas','Sí',this,'si');showCond('cond-falla',true)">✅ Sí</button>
-          <button type="button" class="opt-btn" onclick="selOpt('f-fallas','No',this,'no');showCond('cond-falla',false)">❌ No</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-fallas','Sí',this,'si');showCond('cond-falla',false)">✅ Sí</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-fallas','No',this,'no');showCond('cond-falla',true)">❌ No</button>
         </div>
         <input type="hidden" id="f-fallas">
         <div id="cond-falla" class="cond-block hidden">
@@ -625,7 +625,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
       <label style="font-size:.82rem">Satisfacción promedio ≥<br><input type="number" id="meta-sat" step="0.1" min="1" max="5" value="4.0" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> / 5</label>
       <label style="font-size:.82rem">% Recomendarían ≥<br><input type="number" id="meta-rec" step="1" min="0" max="100" value="80" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
-      <label style="font-size:.82rem">% Fallas post-visita ≤<br><input type="number" id="meta-fall" step="1" min="0" max="100" value="15" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
+      <label style="font-size:.82rem">% Sin fallas post-visita ≥<br><input type="number" id="meta-fall" step="1" min="0" max="100" value="85" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
       <label style="font-size:.82rem">% Cumplimiento técnico ≥<br><input type="number" id="meta-tec" step="1" min="0" max="100" value="85" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
       <label style="font-size:.82rem">Tiempo promedio ≤ (min)<br><input type="number" id="meta-tiempo" step="1" min="1" max="120" value="25" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> min</label>
     </div>
@@ -1207,7 +1207,7 @@ function renderRes(){
     kpiMeta(prom>0?prom.toFixed(2):'—',M.sat,false,'Satisfacción prom.','/5','⭐')+
     kpiMeta(pctSat.toFixed(0)+'%',70,false,'Satisfechos ≥4★','%','😊')+
     kpiMeta(pctRec.toFixed(0)+'%',M.rec,false,'Recomendarían','%','👍')+
-    kpiMeta(pctFall.toFixed(0)+'%',M.fall,true,'Fallas post-visita','%','🔴')+
+    kpiMeta(pctFall.toFixed(0)+'%',M.fall,false,'Sin fallas post-visita','%','✅')+
     kpiMeta(pctCobro.toFixed(0)+'%',90,false,'Sin cobros adicionales','%','💰')+
     kpiMeta(pctTecProm.toFixed(0)+'%',M.tec,false,'Cumplimiento técnico','%','🔧')+
     (avgT>0?kpiMeta(avgFmt,M.tiempo+'min',true,'Tiempo promedio','','⏱️'):'');
