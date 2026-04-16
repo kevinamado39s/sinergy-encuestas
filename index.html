@@ -9,9 +9,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <!-- Firebase SDK (compat) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+
+
 <style>
 :root{--az:#1F4E78;--azm:#2E75B6;--azc:#D9EAF7;--vd:#375623;--vdc:#E2EFDA;
   --am:#BF8F00;--amc:#FFF2CC;--rj:#C00000;--rjc:#FFE7E7;--gris:#404040;--blanco:#FFF;
@@ -599,11 +599,59 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
 
 <!-- ══════════════ PÁGINA: RESULTADOS ══════════════ -->
 <div id="page-resultados" class="page">
+  <!-- Filtro período -->
+  <div class="card" style="padding:10px 14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-weight:600;color:var(--az)">📅 Período:</span>
+      <select id="fil-res-mes" onchange="renderRes()" style="padding:5px 8px;border:1px solid #BCD;border-radius:6px">
+        <option value="">Todos los meses</option>
+        <option value="01">Enero</option><option value="02">Febrero</option>
+        <option value="03">Marzo</option><option value="04">Abril</option>
+        <option value="05">Mayo</option><option value="06">Junio</option>
+        <option value="07">Julio</option><option value="08">Agosto</option>
+        <option value="09">Septiembre</option><option value="10">Octubre</option>
+        <option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+      <select id="fil-res-anio" onchange="renderRes()" style="padding:5px 8px;border:1px solid #BCD;border-radius:6px">
+        <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+      </select>
+      <button class="btn bs" onclick="document.getElementById('fil-res-mes').value='';renderRes()" style="padding:5px 12px">🔄 Todo</button>
+      <button class="btn bp" onclick="toggleMetas()" style="padding:5px 12px;margin-left:auto">🎯 Configurar metas</button>
+    </div>
+  </div>
+  <!-- Panel metas -->
+  <div id="panel-metas" class="card hidden" style="margin-bottom:10px">
+    <h2 style="margin-bottom:10px">🎯 Metas mensuales</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+      <label style="font-size:.82rem">Satisfacción promedio ≥<br><input type="number" id="meta-sat" step="0.1" min="1" max="5" value="4.0" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> / 5</label>
+      <label style="font-size:.82rem">% Recomendarían ≥<br><input type="number" id="meta-rec" step="1" min="0" max="100" value="80" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
+      <label style="font-size:.82rem">% Fallas post-visita ≤<br><input type="number" id="meta-fall" step="1" min="0" max="100" value="15" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
+      <label style="font-size:.82rem">% Cumplimiento técnico ≥<br><input type="number" id="meta-tec" step="1" min="0" max="100" value="85" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
+      <label style="font-size:.82rem">Tiempo promedio ≤ (min)<br><input type="number" id="meta-tiempo" step="1" min="1" max="120" value="25" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> min</label>
+    </div>
+    <button class="btn bp" onclick="guardarMetas()" style="margin-top:10px;padding:6px 16px">💾 Guardar metas</button>
+  </div>
+  <!-- KPIs principales -->
   <div id="kpi-cont" class="kpi-g"></div>
-  <div class="card"><h2>📈 Satisfacción por cuadrilla</h2><div id="br-cuad"></div></div>
+  <!-- Punto 4 cumplimiento -->
+  <div class="card" style="margin-bottom:10px">
+    <h2>🔧 Cumplimiento técnico — Punto 4</h2>
+    <div id="kpi-tec4" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px"></div>
+  </div>
+  <!-- Tendencia mensual -->
+  <div class="card" style="margin-bottom:10px">
+    <h2>📈 Tendencia de satisfacción mensual</h2>
+    <div id="chart-trend" style="overflow-x:auto;padding:6px 0;min-height:80px"></div>
+  </div>
+  <!-- Cumplimiento técnico por técnico -->
+  <div class="card" style="margin-bottom:10px">
+    <h2>👷 Cumplimiento técnico por técnico</h2>
+    <div id="br-tec4"></div>
+  </div>
+  <div class="card"><h2>📊 Satisfacción por cuadrilla</h2><div id="br-cuad"></div></div>
   <div class="card"><h2>📊 Satisfacción por técnico</h2><div id="br-tec"></div></div>
   <div class="card"><h2>🗺️ Satisfacción por localidad</h2><div id="br-loc"></div></div>
-  <div class="card"><h2>🔧 Calidad técnica promedio por cuadrilla</h2><div id="br-cal"></div></div>
+  <div class="card"><h2>🔧 Estética por cuadrilla</h2><div id="br-cal"></div></div>
 </div>
 
 <!-- ══════════════ PÁGINA: EXPORTAR ══════════════ -->
@@ -629,24 +677,17 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
     </div>
   </div>
 </div>
-<div id="m-url" class="mover hidden">
-  <div class="murl" style="max-width:520px">
-    <p>🔥 Configuración Firebase</p>
+<div <div id="m-url" class="mover hidden">
+  <div class="murl" style="max-width:480px">
+    <p>📊 Conectar Google Sheets</p>
     <small style="display:block;color:#666;font-size:.78rem;margin-bottom:10px">
-      Pega aquí el objeto <code>firebaseConfig</code> de tu proyecto Firebase (formato JSON).
+      Pega aquí la URL de tu Web App de Google Apps Script.
     </small>
-    <textarea id="in-fbconfig" rows="8" style="width:100%;padding:8px;border:1px solid #BCD;
-      border-radius:6px;font-size:.76rem;font-family:monospace;resize:vertical;margin-bottom:12px"
-      placeholder='{
-  "apiKey": "AIzaSy...",
-  "authDomain": "tu-proyecto.firebaseapp.com",
-  "projectId": "tu-proyecto",
-  "storageBucket": "tu-proyecto.appspot.com",
-  "messagingSenderId": "123456789",
-  "appId": "1:123456789:web:abc123"
-}'></textarea>
+    <input type="text" id="in-gasurl" style="width:100%;padding:8px;border:1px solid #BCD;
+      border-radius:6px;font-size:.76rem;font-family:monospace;margin-bottom:12px"
+      placeholder="https://script.google.com/macros/s/.../exec">
     <div class="mbr">
-      <button class="btn bp" onclick="saveFirebaseConfig()">🔥 Conectar</button>
+      <button class="btn bp" onclick="saveGasUrl()">📊 Conectar</button>
       <button class="btn bs" onclick="closeURL()">Cancelar</button>
     </div>
   </div>
@@ -1023,51 +1064,191 @@ function limpiarFil(){
 }
 
 /* ──────────── RESULTADOS ──────────── */
+/* ──────────── METAS ──────────── */
+const META_KEY='sinergy_metas';
+function getMetas(){
+  const def={sat:4.0,rec:80,fall:15,tec:85,tiempo:25};
+  try{return Object.assign(def,JSON.parse(localStorage.getItem(META_KEY)||'{}'));}
+  catch(e){return def;}
+}
+function guardarMetas(){
+  const m={
+    sat:  parseFloat(document.getElementById('meta-sat').value)||4.0,
+    rec:  parseFloat(document.getElementById('meta-rec').value)||80,
+    fall: parseFloat(document.getElementById('meta-fall').value)||15,
+    tec:  parseFloat(document.getElementById('meta-tec').value)||85,
+    tiempo:parseFloat(document.getElementById('meta-tiempo').value)||25
+  };
+  localStorage.setItem(META_KEY,JSON.stringify(m));
+  toggleMetas();renderRes();
+}
+function toggleMetas(){
+  const p=document.getElementById('panel-metas');
+  const m=getMetas();
+  document.getElementById('meta-sat').value=m.sat;
+  document.getElementById('meta-rec').value=m.rec;
+  document.getElementById('meta-fall').value=m.fall;
+  document.getElementById('meta-tec').value=m.tec;
+  document.getElementById('meta-tiempo').value=m.tiempo;
+  p.classList.toggle('hidden');
+}
+
+/* ──────────── TREND SVG ──────────── */
+function renderTrend(allData){
+  const el=document.getElementById('chart-trend');
+  if(!el)return;
+  const map={};
+  allData.forEach(r=>{
+    if(!r.fecha)return;
+    const ym=r.fecha.slice(0,7);
+    if(!map[ym])map[ym]=[];
+    const p=parseFloat(r.puntajeSat)||0;
+    if(p>0)map[ym].push(p);
+  });
+  const meses=Object.keys(map).sort().slice(-12);
+  if(meses.length<2){el.innerHTML='<p style="color:#999;font-size:.8rem;padding:8px">Se necesitan encuestas de al menos 2 meses para ver la tendencia.</p>';return;}
+  const pts=meses.map(m=>({
+    lbl:m.slice(5)+'/'+m.slice(2,4),
+    v:map[m].reduce((a,b)=>a+b,0)/map[m].length,
+    n:map[m].length
+  }));
+  const W=Math.max(500,meses.length*80),H=160,PAD=40;
+  const xs=pts.map((_,i)=>PAD+i*(W-PAD*2)/(pts.length-1));
+  const ys=pts.map(p=>H-PAD-(p.v-1)/(4)*(H-PAD*2));
+  const poly=xs.map((x,i)=>x+','+ys[i]).join(' ');
+  const fill=xs[0]+','+(H-PAD)+' '+poly+' '+xs[xs.length-1]+','+(H-PAD);
+  let svg='<svg width="'+W+'" height="'+H+'" style="font-family:Arial,sans-serif">'
+    +'<defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0%" stop-color="#2E75B6" stop-opacity=".2"/>'
+    +'<stop offset="100%" stop-color="#2E75B6" stop-opacity="0"/></linearGradient></defs>'
+    +'<polygon points="'+fill+'" fill="url(#gr)"/>'
+    +'<polyline points="'+poly+'" fill="none" stroke="#2E75B6" stroke-width="2.5" stroke-linejoin="round"/>';
+  pts.forEach(function(p,i){
+    const col=colorP(p.v);
+    svg+='<circle cx="'+xs[i]+'" cy="'+ys[i]+'" r="5" fill="'+col+'" stroke="white" stroke-width="1.5"/>';
+    svg+='<text x="'+xs[i]+'" y="'+(ys[i]-10)+'" text-anchor="middle" font-size="11" font-weight="bold" fill="'+col+'">'+p.v.toFixed(1)+'</text>';
+    svg+='<text x="'+xs[i]+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="#666">'+p.lbl+'</text>';
+    svg+='<text x="'+xs[i]+'" y="'+(H-18)+'" text-anchor="middle" font-size="9" fill="#aaa">('+p.n+')</text>';
+  });
+  svg+='</svg>';
+  el.innerHTML=svg;
+}
+
+/* ──────────── RENDERRES ──────────── */
 function renderRes(){
-  const data=getData();
+  const mes=document.getElementById('fil-res-mes')?document.getElementById('fil-res-mes').value:'';
+  const anio=document.getElementById('fil-res-anio')?document.getElementById('fil-res-anio').value:'';
+  const allData=getData();
+  const data=mes?allData.filter(function(r){
+    if(!r.fecha)return false;
+    const p=r.fecha.split('-');
+    return(!anio||p[0]===anio)&&p[1]===mes;
+  }):allData;
+
   const kpiC=document.getElementById('kpi-cont');
   if(!data.length){
-    kpiC.innerHTML='<div class="empty" style="grid-column:1/-1">📊<p>No hay encuestas registradas aún.</p></div>';
-    ['br-cuad','br-tec','br-loc','br-cal'].forEach(id=>{
-      document.getElementById(id).innerHTML='<div class="empty">📊<p>Sin datos.</p></div>';
+    kpiC.innerHTML='<div class="empty" style="grid-column:1/-1">📊<p>No hay encuestas para el período.</p></div>';
+    ['br-cuad','br-tec','br-loc','br-cal','br-tec4','kpi-tec4','chart-trend'].forEach(function(id){
+      const el=document.getElementById(id);if(el)el.innerHTML='<div class="empty">📊<p>Sin datos.</p></div>';
     });
     return;
   }
+  const M=getMetas();
   const total=data.length;
-  const pts=data.map(r=>parseFloat(r.puntajeSat)||0).filter(p=>p>0);
-  const prom=pts.length?pts.reduce((a,b)=>a+b,0)/pts.length:0;
-  const pctSat=pts.length?(pts.filter(p=>p>=4).length/pts.length*100):0;
-  const pctRec=data.filter(r=>r.recomienda==='Sí').length/total*100;
-  const pctFall=data.filter(r=>r.f_fallas==='Sí').length/total*100;
-  const pctCobro=data.filter(r=>r.f_cobro==='Sí').length/total*100;
+  const pts=data.map(function(r){return parseFloat(r.puntajeSat)||0;}).filter(function(p){return p>0;});
+  const prom=pts.length?pts.reduce(function(a,b){return a+b;},0)/pts.length:0;
+  const pctSat=pts.length?(pts.filter(function(p){return p>=4;}).length/pts.length*100):0;
+  const pctRec=data.filter(function(r){return r.recomienda==='Sí';}).length/total*100;
+  const pctFall=data.filter(function(r){return r.f_fallas==='Sí';}).length/total*100;
+  const pctCobro=data.filter(function(r){return r.f_cobro==='Sí';}).length/total*100;
 
-  kpiC.innerHTML=`
-    <div class="kpi"><div class="kpi-v">${total}</div><div class="kpi-l">Total encuestas</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:${colorP(prom)}">${prom>0?prom.toFixed(2):'—'}</div><div class="kpi-l">Satisfacción prom.</div><div class="kpi-s">/5</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:${pctSat>=70?'#437a22':'#C00000'}">${pctSat.toFixed(0)}%</div><div class="kpi-l">Satisfechos ≥ 4★</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:#437a22">${pctRec.toFixed(0)}%</div><div class="kpi-l">Recomiendan</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:#C00000">${pctFall.toFixed(0)}%</div><div class="kpi-l">Reportaron fallas</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:#C00000">${pctCobro.toFixed(0)}%</div><div class="kpi-l">Cobros irregulares</div></div>
-  `;
-
-  renderBars('br-cuad', agrupar(data,'cuadrilla','sat'));
-  renderBars('br-tec',  agrupar(data,'tecnico','sat').slice(0,10));
-  renderBars('br-loc',  agrupar(data,'localidad','sat').slice(0,10));
-  renderBars('br-cal',  agrupar(data,'cuadrilla','est'));
-}
-
-function agrupar(data,campo,tipo){
-  const map={};
-  data.forEach(r=>{
-    const k=r[campo]||'(vacío)';
-    if(!map[k])map[k]=[];
-    const p=tipo==='sat'?(parseFloat(r.puntajeSat)||0):(+r.s_estetica||0);
-    if(p>0)map[k].push(p);
+  // Tiempo promedio
+  let sumT=0,cntT=0;
+  data.forEach(function(r){
+    if(!r.duracion)return;
+    const hm=r.duracion.match(/(\d+)h/);
+    const mm=r.duracion.match(/(\d+)min/);
+    sumT+=Number(hm?hm[1]:0)*60+Number(mm?mm[1]:0);cntT++;
   });
-  return Object.entries(map)
-    .map(([lbl,vals])=>({lbl,prom:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0,n:vals.length}))
-    .sort((a,b)=>b.prom-a.prom);
+  const avgT=cntT?Math.round(sumT/cntT):0;
+  const avgFmt=avgT>0?(avgT>=60?Math.floor(avgT/60)+'h '+avgT%60+'min':avgT+'min'):'—';
+
+  // Punto 4 cumplimiento
+  const tec4=[
+    {k:'f_grapado',lbl:'Cable grapado'},
+    {k:'f_roseta',lbl:'Roseta instalada'},
+    {k:'f_patchcord',lbl:'Patchcord'},
+    {k:'f_tendido',lbl:'Tendido OK'},
+    {k:'f_ubic',lbl:'Ubicación modem'},
+    {k:'f_cajaOV',lbl:'Caja OV etiquetada'},
+    {k:'f_velocidad',lbl:'Velocidad OK'}
+  ];
+  const tec4data=tec4.map(function(f){
+    const valid=data.filter(function(r){return r[f.k]==='Sí'||r[f.k]==='No';});
+    const si=data.filter(function(r){return r[f.k]==='Sí';}).length;
+    return{k:f.k,lbl:f.lbl,pct:valid.length?Math.round(si/valid.length*100):null,n:valid.length};
+  });
+  const tecValid=tec4data.filter(function(f){return f.pct!==null;});
+  const pctTecProm=tecValid.length?tecValid.reduce(function(a,f){return a+f.pct;},0)/tecValid.length:0;
+
+  // ── KPIs con semáforo ──
+  function kpiMeta(val,meta,inv,lbl,uni,ico){
+    const num=parseFloat(val);
+    const ok=isNaN(num)?false:(inv?num<=meta:num>=meta);
+    const col=ok?'#375623':'#C00000';
+    return'<div class="kpi" style="border-top:3px solid '+col+'">'
+      +'<div class="kpi-v" style="color:'+col+'">'+val+(typeof uni==='string'&&uni&&!String(val).includes(uni)?uni:'')+'</div>'
+      +'<div class="kpi-l">'+ico+' '+lbl+'</div>'
+      +'<div style="font-size:.68rem;color:'+col+';margin-top:2px">'+(ok?'✅':'⚠️')+' Meta: '+(inv?'≤':'≥')+meta+(uni||'')+'</div>'
+      +'</div>';
+  }
+  kpiC.innerHTML=
+    '<div class="kpi"><div class="kpi-v">'+total+'</div><div class="kpi-l">📋 Total encuestas</div></div>'+
+    kpiMeta(prom>0?prom.toFixed(2):'—',M.sat,false,'Satisfacción prom.','/5','⭐')+
+    kpiMeta(pctSat.toFixed(0)+'%',70,false,'Satisfechos ≥4★','%','😊')+
+    kpiMeta(pctRec.toFixed(0)+'%',M.rec,false,'Recomendarían','%','👍')+
+    kpiMeta(pctFall.toFixed(0)+'%',M.fall,true,'Fallas post-visita','%','🔴')+
+    kpiMeta(pctCobro.toFixed(0)+'%',5,true,'Cobros irregulares','%','💰')+
+    kpiMeta(pctTecProm.toFixed(0)+'%',M.tec,false,'Cumplimiento técnico','%','🔧')+
+    (avgT>0?kpiMeta(avgFmt,M.tiempo+'min',true,'Tiempo promedio','','⏱️'):'');
+
+  // ── Punto 4 detalle ──
+  const t4el=document.getElementById('kpi-tec4');
+  if(t4el)t4el.innerHTML=tec4data.map(function(f){
+    if(f.pct===null)return'<div style="background:#f9f9f9;border-radius:8px;padding:10px;font-size:.8rem;color:#aaa">'+f.lbl+'<br>Sin datos</div>';
+    const col=f.pct>=M.tec?'#375623':'#C00000';
+    return'<div style="background:white;border-radius:8px;padding:10px;border:1px solid #e0e0e0">'
+      +'<div style="font-size:.78rem;color:#555;margin-bottom:4px">'+f.lbl+' <span style="color:#aaa">('+f.n+')</span></div>'
+      +'<div style="background:#eee;border-radius:4px;height:8px;overflow:hidden">'
+      +'<div style="width:'+f.pct+'%;height:100%;background:'+col+';border-radius:4px"></div></div>'
+      +'<div style="font-size:.9rem;font-weight:700;color:'+col+';margin-top:4px">'+f.pct+'%</div>'
+      +'</div>';
+  }).join('');
+
+  // ── Tendencia mensual ──
+  renderTrend(allData);
+
+  // ── Cumplimiento técnico por técnico ──
+  const tecMap={};
+  data.forEach(function(r){
+    const t=r.tecnico||'(sin nombre)';
+    if(!tecMap[t])tecMap[t]={si:0,tot:0};
+    tec4.forEach(function(f){
+      if(r[f.k]==='Sí'){tecMap[t].si++;tecMap[t].tot++;}
+      else if(r[f.k]==='No')tecMap[t].tot++;
+    });
+  });
+  const tec4rows=Object.entries(tecMap)
+    .map(function(e){return{lbl:e[0],prom:e[1].tot?e[1].si/e[1].tot*5:0,n:e[1].tot};})
+    .sort(function(a,b){return b.prom-a.prom;}).slice(0,10);
+  renderBars('br-tec4',tec4rows);
+
+  renderBars('br-cuad',agrupar(data,'cuadrilla','sat'));
+  renderBars('br-tec', agrupar(data,'tecnico','sat').slice(0,10));
+  renderBars('br-loc', agrupar(data,'localidad','sat').slice(0,10));
+  renderBars('br-cal', agrupar(data,'cuadrilla','est'));
 }
+
 
 function renderBars(cid,rows){
   const c=document.getElementById(cid);
@@ -1084,6 +1265,243 @@ function renderBars(cid,rows){
   }).join('');
 }
 
+/* ──────────── EXPORTAR ──────────── */
+const CCOLS=[
+  'id','fecha','tecnico','realizadaPor','cuadrilla','servicio','localidad',
+  'cliente','cedula','direccion','titular','nombreAutorizado',
+  'f_puntual','f_presenta','f_labor','f_explica','f_cobro','f_fallas','tipoFalla','recomienda',
+  's_satisfaccion','s_amabilidad','puntajeSat','clasifSat',
+  'f_grapado','f_roseta','f_patchcord','f_tendido','f_ubic','f_ubicSug','f_cajaOV',
+  'f_velocidad','velDown','velUp','s_estetica','potencia',
+  'obsCliente','obsTecnica'
+];
+const CLBLS=[
+  'ID','Fecha','Técnico','Realizada por','Cuadrilla (Placa)','Servicio','Localidad',
+  'Cliente','Cédula','Dirección','Titular','Nombre autorizado',
+  'Puntualidad','Presentación','Labor adecuada','Explicó falla','Cobro','Fallas post','Tipo falla','Recomienda',
+  'Estrella satisfacción','Estrella amabilidad','Puntaje satisfacción','Clasificación',
+  'Cable grapado','Roseta','Patchcord','Tendido OK','Ubicación modem','Quién sugirió','Caja OV etiquetada',
+  'Test velocidad','Vel. descarga (Mbps)','Vel. subida (Mbps)','Estética','Potencia dBm',
+  'Obs. cliente','Obs. técnica'
+];
+
+function expCSV(){
+  const data=getData();
+  if(!data.length){alert('No hay encuestas.');return;}
+  let csv=CLBLS.map(c=>'"'+c+'"').join(',')+'\n';
+  data.forEach(r=>{ csv+=CCOLS.map(k=>'"'+String(r[k]||'').replace(/"/g,'""')+'"').join(',')+'\n'; });
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='encuestas_sinergy_'+hoy()+'.csv';a.click();
+}
+
+function expPDF(){
+  const data=getData();
+  if(!data.length){alert('No hay encuestas.');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',format:'a4'});
+  doc.setFontSize(13);doc.setTextColor(31,78,120);
+  doc.text('Encuestas de Satisfacción y Calidad – Sinergy Soluciones Integrales',14,16);
+  doc.setFontSize(8);doc.setTextColor(100);
+  doc.text('Generado: '+hoy()+' | Total: '+data.length+' encuestas',14,23);
+  doc.autoTable({
+    startY:28,
+    head:[['Fecha','Técnico','Cliente','Localidad','Servicio','Sat.','Clasif.','Estética','dBm','Recomienda','Fallas']],
+    body:data.map(r=>[
+      r.fecha||'',r.tecnico||'',r.cliente||'',r.localidad||'',r.servicio||'',
+      r.puntajeSat?r.puntajeSat+'/5':'—',r.clasifSat||'',
+      r.s_estetica?r.s_estetica+'/5':'—',r.potencia?r.potencia+' dBm':'—',
+      r.recomienda||'',r.f_fallas||''
+    ]),
+    styles:{fontSize:7.5,cellPadding:2.5},
+    headStyles:{fillColor:[31,78,120],textColor:255,fontStyle:'bold',fontSize:8},
+    alternateRowStyles:{fillColor:[240,247,255]},
+    margin:{left:10,right:10}
+  });
+  doc.save('encuestas_sinergy_'+hoy()+'.pdf');
+}
+
+function renderPrev(){
+  const data=getData().slice(-10).reverse();
+  const c=document.getElementById('prev-exp');
+  if(!data.length){c.innerHTML='<div class="empty">📋<p>Sin encuestas.</p></div>';return;}
+  let h='<div class="tw"><table><thead><tr><th>Fecha</th><th>Técnico</th><th>Cliente</th><th>Localidad</th><th>Satisfacción</th><th>Estética</th><th>Recomienda</th></tr></thead><tbody>';
+  data.forEach(r=>{
+    const p=parseFloat(r.puntajeSat)||0;
+    h+=`<tr><td>${esc(r.fecha)}</td><td>${esc(r.tecnico)}</td><td>${esc(r.cliente)}</td><td>${esc(r.localidad)}</td>
+      <td><span class="pill" style="background:${colorP(p)}22;color:${colorP(p)}">${p>0?p.toFixed(1)+'/5':'—'}</span></td>
+      <td><span class="pill" style="background:${colorP(+r.s_estetica||0)}22;color:${colorP(+r.s_estetica||0)}">${r.s_estetica?r.s_estetica+'/5':'—'}</span></td>
+      <td><span class="badge ${r.recomienda==='Sí'?'b-si':'b-no'}">${esc(r.recomienda||'—')}</span></td>
+    </tr>`;
+  });
+  c.innerHTML=h+'</tbody></table></div>';
+}
+
+/* ──────────── MODAL CONFIRMAR ──────────── */
+function confirmar(msg,cb){
+  const ov=document.getElementById('m-confirm');
+  document.getElementById('m-msg').textContent=msg;
+  ov.classList.remove('hidden');
+  const close=()=>ov.classList.add('hidden');
+  document.getElementById('m-ok').onclick=()=>{close();cb();};
+  document.getElementById('m-cancel').onclick=close;
+  ov.onclick=e=>{if(e.target===ov)close();};
+}
+
+/* ──────────── UTILIDADES TIEMPO ──────────── */
+function calcDuracion(ini, fin){
+  if(!ini||!fin) return '';
+  const [hI,mI]=ini.split(':').map(Number);
+  const [hF,mF]=fin.split(':').map(Number);
+  let mins=(hF*60+mF)-(hI*60+mI);
+  if(mins<0) mins+=1440; // cruce medianoche
+  const h=Math.floor(mins/60), m=mins%60;
+  return h>0?`${h}h ${m}min`:`${m}min`;
+}
+
+/* ──────────── GOOGLE SHEETS SYNC ──────────── */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzVBV8SCbf7emGVXry-s9hq2KI_tqytiws0wS9waB7yLiiYS3PRbcp9Hze1rAh6z8HH/exec';
+const GAS_KEY = 'sinergy_gas_url';
+
+function setSyncSt(s){
+  const el=document.getElementById('sync-st');
+  if(!el)return;
+  const m={syncing:['sic','🔄 Sincronizando'],ok:['ok-c','✅ Sheets OK'],
+           error:['err-c','⚠️ Sin conexión'],local:['loc-c','⚡ Local']};
+  const [cls,txt]=m[s]||m.local;
+  el.className=cls;el.textContent=txt;
+}
+
+function getGasUrl(){
+  return localStorage.getItem(GAS_KEY)||GAS_URL;
+}
+
+// Guardar o actualizar una fila en Sheets
+async function fbSave(record){
+  const url=getGasUrl();
+  if(!url){setSyncSt('local');return;}
+  setSyncSt('syncing');
+  try{
+    const res=await fetch(url,{
+      method:'POST',
+      body:JSON.stringify({action:'save',record:flatRecord(record)})
+    });
+    const j=await res.json();
+    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
+  }catch(e){console.error('GAS save error:',e);setSyncSt('error');}
+}
+
+// Eliminar una fila en Sheets
+async function fbDelete(id){
+  const url=getGasUrl();
+  if(!url)return;
+  setSyncSt('syncing');
+  try{
+    const res=await fetch(url,{
+      method:'POST',
+      body:JSON.stringify({action:'delete',id:String(id)})
+    });
+    const j=await res.json();
+    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
+  }catch(e){console.error('GAS delete error:',e);setSyncSt('error');}
+}
+
+// Cargar todos los registros desde Sheets al inicio
+async function cargarFirebase(){
+  if(_loaded)return;
+  _loaded=true;
+  const url=getGasUrl();
+  if(!url){setSyncSt('local');renderHist();renderRes();return;}
+  setSyncSt('syncing');
+  try{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),10000);
+    const res=await fetch(url+'?t='+Date.now(),{signal:ctrl.signal});
+    clearTimeout(timer);
+    const j=await res.json();
+    if(j.ok && j.data && j.data.length){
+      // Mapear columnas del Sheet a campos internos
+      const mapped=j.data.map(function(row){return sheetRowToRecord(row);});
+      localStorage.setItem(KEY,JSON.stringify(mapped));
+      setSyncSt('ok');
+    } else if(getData().length){
+      // Subir registros locales a Sheets
+      const local=getData();
+      for(const r of local){ await fbSave(r); }
+      setSyncSt('ok');
+    } else {
+      setSyncSt('ok');
+    }
+  }catch(e){
+    console.error('GAS load error:',e.message);
+    setSyncSt('error');
+  }
+  renderHist();renderRes();
+}
+
+// Convertir registro interno → objeto con claves del Sheet
+function flatRecord(r){
+  return {
+    'ID':r.id||'','Fecha':r.fecha||'','Técnico':r.tecnico||'','Realizada por':r.realizadaPor||'',
+    'Cuadrilla':r.cuadrilla||'','Actividad':r.servicio||'','Localidad':r.localidad||'',
+    'Cliente':r.cliente||'','Cédula':r.cedula||'','Titular':r.titular||'','Nombre autorizado':r.nombreAutorizado||'',
+    'Hora inicio':r.horaInicio||'','Hora fin':r.horaFin||'','Duración':r.duracion||'',
+    'Puntualidad':r.f_puntual||'','Presentación':r.f_presenta||'','Profesionalismo':r.f_labor||'',
+    'Explicó falla':r.f_explica||'','Cobro adicional':r.f_cobro||'','Fallas post':r.f_fallas||'',
+    'Tipo falla':r.tipoFalla||'','Recomendaría':r.recomienda||'',
+    'Estrella satisfacción':r.s_satisfaccion||'','Estrella amabilidad':r.s_amabilidad||'',
+    'Puntaje':r.puntajeSat||'','Clasificación':r.clasifSat||'',
+    'Cable grapado':r.f_grapado||'','Roseta':r.f_roseta||'','Patchcord':r.f_patchcord||'',
+    'Tendido OK':r.f_tendido||'','Ubicación modem':r.f_ubic||'','Quién sugirió':r.f_ubicSug||'',
+    'Caja OV':r.f_cajaOV||'','Velocidad OK':r.f_velocidad||'',
+    'Vel. descarga':r.velDown||'','Vel. subida':r.velUp||'','Estética':r.s_estetica||'',
+    'Potencia dBm':r.potencia||'','Obs. cliente':r.obsCliente||'','Obs. técnica':r.obsTecnica||''
+  };
+}
+
+// Convertir fila del Sheet → objeto interno de la app
+function sheetRowToRecord(row){
+  return {
+    id:row['ID'],fecha:row['Fecha'],tecnico:row['Técnico'],realizadaPor:row['Realizada por'],
+    cuadrilla:row['Cuadrilla'],servicio:row['Actividad'],localidad:row['Localidad'],
+    cliente:row['Cliente'],cedula:row['Cédula'],titular:row['Titular'],nombreAutorizado:row['Nombre autorizado'],
+    horaInicio:row['Hora inicio'],horaFin:row['Hora fin'],duracion:row['Duración'],
+    f_puntual:row['Puntualidad'],f_presenta:row['Presentación'],f_labor:row['Profesionalismo'],
+    f_explica:row['Explicó falla'],f_cobro:row['Cobro adicional'],f_fallas:row['Fallas post'],
+    tipoFalla:row['Tipo falla'],recomienda:row['Recomendaría'],
+    s_satisfaccion:row['Estrella satisfacción'],s_amabilidad:row['Estrella amabilidad'],
+    puntajeSat:row['Puntaje'],clasifSat:row['Clasificación'],
+    f_grapado:row['Cable grapado'],f_roseta:row['Roseta'],f_patchcord:row['Patchcord'],
+    f_tendido:row['Tendido OK'],f_ubic:row['Ubicación modem'],f_ubicSug:row['Quién sugirió'],
+    f_cajaOV:row['Caja OV'],f_velocidad:row['Velocidad OK'],
+    velDown:row['Vel. descarga'],velUp:row['Vel. subida'],s_estetica:row['Estética'],
+    potencia:row['Potencia dBm'],obsCliente:row['Obs. cliente'],obsTecnica:row['Obs. técnica']
+  };
+}
+
+/* ──────────── CONFIG GAS ──────────── */
+function abrirURL(){
+  const saved=getGasUrl();
+  document.getElementById('in-gasurl').value=saved||'';
+  document.getElementById('m-url').classList.remove('hidden');
+}
+function closeURL(){document.getElementById('m-url').classList.add('hidden');}
+function saveGasUrl(){
+  const url=document.getElementById('in-gasurl').value.trim();
+  if(!url||!url.includes('script.google.com')){alert('⚠️ URL inválida. Debe ser de Google Apps Script.');return;}
+  localStorage.setItem(GAS_KEY,url);
+  closeURL();
+  _loaded=false;
+  cargarFirebase();
+}
+
+/* ──────────── INIT ──────────── */
+document.addEventListener('DOMContentLoaded',function(){
+  initStars();
+  sv('f-fecha',hoy());
+  sv('f-hora-inicio',new Date().toTimeString().slice(0,5));
+  cargarFirebase();
+});
 /* ──────────── EXPORTAR ──────────── */
 const CCOLS=[
   'id','fecha','tecnico','realizadaPor','cuadrilla','servicio','localidad',
