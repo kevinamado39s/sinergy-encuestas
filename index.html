@@ -347,7 +347,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-explica">
       </div>
       <div class="fld">
-        <label>¿El técnico le solicitó algún pago adicional? <span class="req">*</span></label>
+        <label>¿La visita fue realizada sin cobros adicionales? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-cobro','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-cobro','No',this,'no')">❌ No</button>
@@ -1208,7 +1208,7 @@ function renderRes(){
     kpiMeta(pctSat.toFixed(0)+'%',70,false,'Satisfechos ≥4★','%','😊')+
     kpiMeta(pctRec.toFixed(0)+'%',M.rec,false,'Recomendarían','%','👍')+
     kpiMeta(pctFall.toFixed(0)+'%',M.fall,true,'Fallas post-visita','%','🔴')+
-    kpiMeta(pctCobro.toFixed(0)+'%',5,true,'Cobros irregulares','%','💰')+
+    kpiMeta(pctCobro.toFixed(0)+'%',90,false,'Sin cobros adicionales','%','💰')+
     kpiMeta(pctTecProm.toFixed(0)+'%',M.tec,false,'Cumplimiento técnico','%','🔧')+
     (avgT>0?kpiMeta(avgFmt,M.tiempo+'min',true,'Tiempo promedio','','⏱️'):'');
 
