@@ -1193,13 +1193,16 @@ function renderRes(){
 
   // ── KPIs con semáforo ──
   function kpiMeta(val,meta,inv,lbl,uni,ico){
-    const num=parseFloat(val);
-    const ok=isNaN(num)?false:(inv?num<=meta:num>=meta);
-    const col=ok?'#375623':'#C00000';
+    const num=parseFloat(String(val));
+    const metaNum=parseFloat(String(meta));
+    const noData=(val===null||val===undefined||String(val).trim()===''||String(val).trim()==='—');
+    const ok=noData?false:isNaN(num)?false:(inv?num<=metaNum:num>=metaNum);
+    const col=noData?'#888888':(ok?'#1a6e2e':'#C00000');
+    const metaLbl=isNaN(metaNum)?String(meta):metaNum+(uni||'');
     return'<div class="kpi" style="border-top:3px solid '+col+'">'
-      +'<div class="kpi-v" style="color:'+col+'">'+val+(typeof uni==='string'&&uni&&!String(val).includes(uni)?uni:'')+'</div>'
+      +'<div class="kpi-v" style="color:'+col+'">'+val+(typeof uni==='string'&&uni&&!noData&&!String(val).includes(uni)?uni:'')+'</div>'
       +'<div class="kpi-l">'+ico+' '+lbl+'</div>'
-      +'<div style="font-size:.68rem;color:'+col+';margin-top:2px">'+(ok?'✅':'⚠️')+' Meta: '+(inv?'≤':'≥')+meta+(uni||'')+'</div>'
+      +'<div style="font-size:.68rem;color:'+col+';margin-top:2px">'+(noData?'ℹ️ Sin datos':(ok?'✅':'⚠️')+' Meta: '+(inv?'≤':'≥')+metaLbl)+'</div>'
       +'</div>';
   }
   kpiC.innerHTML=
@@ -1382,10 +1385,10 @@ async function fbSave(record){
   if(!url){setSyncSt('local');return;}
   setSyncSt('syncing');
   try{
-    const payload=JSON.stringify({action:'save',record:flatRecord(record)});
-    // Usar no-cors para evitar problemas de preflight CORS con GAS
-    await fetch(url,{method:'POST',mode:'no-cors',body:payload});
-    setSyncSt('ok');
+    const payload=encodeURIComponent(JSON.stringify({action:'save',record:flatRecord(record)}));
+    const res=await fetch(url+'?data='+payload,{method:'GET'});
+    const j=await res.json();
+    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
   }catch(e){console.error('GAS save error:',e);setSyncSt('error');}
 }
 
@@ -1396,8 +1399,10 @@ async function fbDelete(id){
   if(!url)return;
   setSyncSt('syncing');
   try{
-    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',id:String(id)})});
-    setSyncSt('ok');
+    const payload=encodeURIComponent(JSON.stringify({action:'delete',id:String(id)}));
+    const res=await fetch(url+'?data='+payload,{method:'GET'});
+    const j=await res.json();
+    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
   }catch(e){console.error('GAS delete error:',e);setSyncSt('error');}
 }
 
