@@ -878,6 +878,21 @@ function guardar(){
   if(!loc){alert('⚠️ Selecciona la localidad.');return;}
   if(!cli){alert('⚠️ Escribe el nombre.');return;}
   if(!rec){alert('⚠️ Indica si el cliente recomienda el servicio.');return;}
+  if(!v('f-hora-inicio')){alert('⚠️ Ingresa la hora de inicio.');return;}
+  if(!tit){alert('⚠️ Indica si atiende el titular del servicio.');return;}
+  if(!punt){alert('⚠️ Responde: ¿Se cumplió con la fecha y hora?');return;}
+  if(!pres){alert('⚠️ Responde: ¿El técnico se presentó adecuadamente?');return;}
+  if(!lab){alert('⚠️ Responde: ¿El técnico demostró profesionalismo?');return;}
+  if(!expl){alert('⚠️ Responde: ¿El técnico explicó el servicio o la falla?');return;}
+  if(!cobro){alert('⚠️ Responde: ¿La visita fue sin cobros adicionales?');return;}
+  if(!fall){alert('⚠️ Responde: ¿El servicio quedó funcionando sin fallas?');return;}
+  if(SV.satisfaccion===0){alert('⚠️ El cliente debe calificar la satisfacción (estrellas ⭐).');return;}
+  if(!grap){alert('⚠️ Indica si el cable drop está grapado.');return;}
+  if(!ros){alert('⚠️ Indica si se instaló roseta.');return;}
+  if(!pat){alert('⚠️ Indica si la ONT usa patchcord.');return;}
+  if(!tend){alert('⚠️ Indica el estado del tendido exterior.');return;}
+  if(!getOpt('f-caja-ov')){alert('⚠️ Indica si la caja OV está etiquetada.');return;}
+  if(!pot){alert('⚠️ Ingresa la potencia del servicio (dBm).');return;}
 
   const isNew=!id;
   const pSat=calcScoreSat(SV);
@@ -1038,6 +1053,7 @@ function renderHist(){
     const est=+r.s_estetica||0;
     h+=`<tr>
       <td>${esc(r.fecha)}</td>
+      <td>${r.duracion||'—'}</td>
       <td>${esc(r.tecnico)}</td>
       <td>${esc(r.cliente)}</td>
       <td>${esc(r.localidad)}</td>
@@ -1157,7 +1173,7 @@ function renderRes(){
   const total=data.length;
   const pts=data.map(function(r){return parseFloat(r.puntajeSat)||0;}).filter(function(p){return p>0;});
   const prom=pts.length?pts.reduce(function(a,b){return a+b;},0)/pts.length:0;
-  const pctSat=pts.length?(pts.filter(function(p){return p>=4;}).length/pts.length*100):0;
+  const pctSat=total?(data.filter(function(r){return parseFloat(r.puntajeSat)>=4;}).length/total*100):0;
   const pctRec=data.filter(function(r){return r.recomienda==='Sí';}).length/total*100;
   const pctFall=data.filter(function(r){return r.f_fallas==='Sí';}).length/total*100;
   const pctCobro=data.filter(function(r){return r.f_cobro==='Sí';}).length/total*100;
@@ -1208,7 +1224,7 @@ function renderRes(){
   kpiC.innerHTML=
     '<div class="kpi"><div class="kpi-v">'+total+'</div><div class="kpi-l">📋 Total encuestas</div></div>'+
     kpiMeta(prom>0?prom.toFixed(2):'—',M.sat,false,'Satisfacción prom.','/5','⭐')+
-    kpiMeta(pctSat.toFixed(0)+'%',70,false,'Satisfechos ≥4★','%','😊')+
+    kpiMeta(pctSat.toFixed(0)+'%',Math.round(M.sat*20),false,'Satisfechos ≥4★','%','😊')+
     kpiMeta(pctRec.toFixed(0)+'%',M.rec,false,'Recomendarían','%','👍')+
     kpiMeta(pctFall.toFixed(0)+'%',M.fall,false,'Sin fallas post-visita','%','✅')+
     kpiMeta(pctCobro.toFixed(0)+'%',90,false,'Sin cobros adicionales','%','💰')+
@@ -1389,9 +1405,13 @@ async function gasRequest(payload){
   if(!url)return false;
   try{
     const ctrl=new AbortController();
-    const timer=setTimeout(()=>ctrl.abort(),15000);
-    const qs=encodeURIComponent(JSON.stringify(payload));
-    const res=await fetch(url+'?data='+qs,{method:'GET',signal:ctrl.signal});
+    const timer=setTimeout(()=>ctrl.abort(),20000);
+    const body=new URLSearchParams({data:JSON.stringify(payload)});
+    const res=await fetch(url,{
+      method:'POST',
+      body:body,
+      signal:ctrl.signal
+    });
     clearTimeout(timer);
     const j=await res.json();
     return j.ok===true;
