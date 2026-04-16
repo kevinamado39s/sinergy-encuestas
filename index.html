@@ -249,6 +249,8 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         </datalist>
       </div>
       <div class="fld"><label>Encuesta realizada por <span class="req">*</span></label><input type="text" id="f-realizada" placeholder="Nombre del supervisor"></div>
+      <div class="fld"><label>Hora inicio <span class="req">*</span></label><input type="time" id="f-hora-inicio" required></div>
+      <div class="fld"><label>Hora fin <span class="req">*</span></label><input type="time" id="f-hora-fin"></div>
       <div class="fld"><label>Cuadrilla (Placa) <span class="req">*</span></label>
         <select id="f-cuadrilla">
           <option value="">-- seleccionar --</option>
@@ -256,7 +258,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
           <option>NQW 070</option><option>DEY 888</option><option>RDU 154</option>
         </select>
       </div>
-      <div class="fld"><label>Servicio requerido <span class="req">*</span></label>
+      <div class="fld"><label>Actividad a supervisar <span class="req">*</span></label>
         <select id="f-servicio">
           <option value="">-- seleccionar --</option>
           <option>Instalación nueva</option><option>Traslado de servicio</option>
@@ -285,9 +287,9 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
   <div class="sec-header">👤 2. Datos del cliente</div>
   <div class="sec-body">
     <div class="fg">
-      <div class="fld"><label>Nombre de la persona encuestada <span class="req">*</span></label><input type="text" id="f-cliente" placeholder="Nombre completo"></div>
-      <div class="fld"><label>No. de cédula</label><input type="text" id="f-cedula" placeholder="CC / NIT"></div>
-      <div class="fld full"><label>Dirección del predio y barrio <span class="req">*</span></label><input type="text" id="f-direccion" placeholder="Calle, barrio o vereda"></div>
+      <div class="fld"><label>Nombre <span class="req">*</span></label><input type="text" id="f-cliente" placeholder="Nombre completo"></div>
+      <div class="fld"><label>Documento de identidad</label><input type="text" id="f-cedula" placeholder="CC / NIT"></div>
+      
       <div class="fld">
         <label>¿Atiende el titular del servicio? <span class="req">*</span></label>
         <div class="opts">
@@ -819,7 +821,8 @@ function guardar(){
   const id=v('f-id');
   const fecha=v('f-fecha'), tec=v('f-tecnico'), real=v('f-realizada');
   const cuad=v('f-cuadrilla'), serv=v('f-servicio'), loc=v('f-localidad');
-  const cli=v('f-cliente'), dir=v('f-direccion'), tit=getOpt('f-titular');
+  const horaInicio=v('f-hora-inicio'), horaFin=v('f-hora-fin');
+  const cli=v('f-cliente'), tit=getOpt('f-titular');
   const punt=getOpt('f-puntual'), pres=getOpt('f-presenta'), lab=getOpt('f-labor');
   const expl=getOpt('f-explica'), cobro=getOpt('f-cobro'), fall=getOpt('f-fallas');
   const rec=getOpt('f-recomienda');
@@ -831,9 +834,9 @@ function guardar(){
   if(!tec){alert('⚠️ Escribe el nombre del técnico.');return;}
   if(!real){alert('⚠️ Escribe quién realiza la encuesta.');return;}
   if(!cuad){alert('⚠️ Selecciona la cuadrilla.');return;}
-  if(!serv){alert('⚠️ Selecciona el servicio requerido.');return;}
+  if(!serv){alert('⚠️ Selecciona el actividad a supervisar.');return;}
   if(!loc){alert('⚠️ Selecciona la localidad.');return;}
-  if(!cli){alert('⚠️ Escribe el nombre del cliente.');return;}
+  if(!cli){alert('⚠️ Escribe el nombre.');return;}
   if(!rec){alert('⚠️ Indica si el cliente recomienda el servicio.');return;}
 
   const isNew=!id;
@@ -847,8 +850,10 @@ function guardar(){
     servicio:    serv,
     localidad:   loc,
     cliente:     cli,
+    horaInicio:  horaInicio,
+    horaFin:     horaFin,
+    duracion:    calcDuracion(horaInicio, horaFin),
     cedula:      v('f-cedula'),
-    direccion:   dir,
     titular:     tit,
     // Satisfacción Sí/No
     f_puntual:   punt,
@@ -911,7 +916,7 @@ function editarEnc(id){
   sv('f-tecnico',row.tecnico||''); sv('f-realizada',row.realizadaPor||'');
   sv('f-cuadrilla',row.cuadrilla||''); sv('f-servicio',row.servicio||'');
   sv('f-localidad',row.localidad||''); sv('f-cliente',row.cliente||'');
-  sv('f-cedula',row.cedula||''); sv('f-direccion',row.direccion||'');
+  sv('f-cedula',row.cedula||''); sv(row.direccion||'');
   sv('f-potencia',row.potencia||'');
   sv('f-obs-cliente',row.obsCliente||''); sv('f-obs-tec',row.obsTecnica||'');
   sv('f-tipo-falla',row.tipoFalla||'');
@@ -951,8 +956,8 @@ function eliminarEnc(id){
 
 function resetForm(){
   const campos=['f-id','f-fecha','f-tecnico','f-realizada','f-cuadrilla','f-servicio',
-    'f-localidad','f-cliente','f-cedula','f-direccion','f-potencia',
-    'f-obs-cliente','f-obs-tec','f-tipo-falla',
+    'f-localidad','f-cliente','f-cedula','f-potencia',
+    'f-hora-inicio','f-hora-fin','f-obs-cliente','f-obs-tec','f-tipo-falla',
     'f-titular','f-puntual','f-presenta','f-labor','f-explica','f-cobro',
     'f-fallas','f-recomienda','f-grapado','f-roseta','f-patchcord',
     'f-tendido','f-ubic','f-ubic-sug'];
@@ -985,7 +990,7 @@ function renderHist(){
   const c=document.getElementById('cont-hist');
   if(!rows.length){c.innerHTML='<div class="empty">📋<p>No hay encuestas con estos filtros.</p></div>';return;}
   let h='<div class="tw"><table><thead><tr>'
-    +'<th>Fecha</th><th>Técnico</th><th>Cliente</th><th>Localidad</th><th>Servicio</th>'
+    +'<th>Fecha</th><th>Duración</th><th>Técnico</th><th>Cliente</th><th>Localidad</th><th>Servicio</th>'
     +'<th>Satisf.</th><th>Clasif.</th><th>Estética</th><th>Potencia</th><th>Recomienda</th><th>Fallas</th><th>Acciones</th>'
     +'</tr></thead><tbody>';
   rows.forEach(r=>{
@@ -1161,6 +1166,17 @@ function confirmar(msg,cb){
   document.getElementById('m-ok').onclick=()=>{close();cb();};
   document.getElementById('m-cancel').onclick=close;
   ov.onclick=e=>{if(e.target===ov)close();};
+}
+
+/* ──────────── UTILIDADES TIEMPO ──────────── */
+function calcDuracion(ini, fin){
+  if(!ini||!fin) return '';
+  const [hI,mI]=ini.split(':').map(Number);
+  const [hF,mF]=fin.split(':').map(Number);
+  let mins=(hF*60+mF)-(hI*60+mI);
+  if(mins<0) mins+=1440; // cruce medianoche
+  const h=Math.floor(mins/60), m=mins%60;
+  return h>0?`${h}h ${m}min`:`${m}min`;
 }
 
 /* ──────────── FIREBASE ──────────── */
