@@ -331,7 +331,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-presenta">
       </div>
       <div class="fld">
-        <label>¿El técnico realiza su labor de forma adecuada? <span class="req">*</span></label>
+        <label>¿El técnico demostró profesionalismo durante la visita? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-labor','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-labor','No',this,'no')">❌ No</button>
@@ -339,7 +339,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-labor">
       </div>
       <div class="fld">
-        <label>¿Le explicaron funcionamiento o causa de la falla? <span class="req">*</span></label>
+        <label>¿El técnico le explicó el funcionamiento del servicio o la causa de la falla? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-explica','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-explica','No',this,'no')">❌ No</button>
@@ -347,7 +347,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-explica">
       </div>
       <div class="fld">
-        <label>¿Le realizaron algún cobro no autorizado? <span class="req">*</span></label>
+        <label>¿El técnico le solicitó algún pago adicional? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-cobro','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-cobro','No',this,'no')">❌ No</button>
@@ -355,7 +355,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-cobro">
       </div>
       <div class="fld">
-        <label>¿Ha presentado fallas después de la visita? <span class="req">*</span></label>
+        <label>¿Ha presentado fallas después de la visita del técnico? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-fallas','Sí',this,'si');showCond('cond-falla',true)">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-fallas','No',this,'no');showCond('cond-falla',false)">❌ No</button>
@@ -368,7 +368,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         </div>
       </div>
       <div class="fld">
-        <label>¿Recomienda los servicios de Sinergy? <span class="req">*</span></label>
+        <label>¿Recomendaría los servicios de Sinergy? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-recomienda','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-recomienda','No',this,'no')">❌ No</button>
@@ -412,14 +412,13 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
       <div class="fld">
         <label>¿El cable Drop se encuentra grapado? <span class="req">*</span></label>
         <div class="opts">
-          <button type="button" class="opt-btn" onclick="selOpt('f-grapado','Sí, cable grapado',this,'si')">✅ Grapado</button>
-          <button type="button" class="opt-btn" onclick="selOpt('f-grapado','No, suelto sin grapar',this,'no')">❌ Suelto</button>
-          <button type="button" class="opt-btn" onclick="selOpt('f-grapado','Cable canalizado',this,'opt')">📦 Canalizado</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-grapado','Sí',this,'si')">✅ Sí</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-grapado','No',this,'no')">❌ No</button>
         </div>
         <input type="hidden" id="f-grapado">
       </div>
       <div class="fld">
-        <label>¿Se hace uso de roseta? <span class="req">*</span></label>
+        <label>¿Se instaló y hace uso de roseta? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-roseta','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-roseta','No',this,'no')">❌ No</button>
@@ -429,13 +428,13 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
       <div class="fld">
         <label>¿La ONT está conectada con patchcord? <span class="req">*</span></label>
         <div class="opts">
-          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','Sí, con patchcord',this,'si')">✅ Patchcord</button>
-          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','No, conector mecánico',this,'no')">❌ Directo</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','Sí',this,'si')">✅ Patchcord</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','No',this,'no')">❌ Directo</button>
         </div>
         <input type="hidden" id="f-patchcord">
       </div>
       <div class="fld">
-        <label>¿Tendido exterior con buena tensión y altura? <span class="req">*</span></label>
+        <label>¿El tendido exterior tiene buena tensión y altura? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-tendido','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-tendido','No',this,'no')">❌ No</button>
@@ -443,14 +442,14 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-tendido">
       </div>
       <div class="fld">
-        <label>¿La ubicación del modem es la indicada? <span class="req">*</span></label>
+        <label>¿La ubicación del modem es la adecuada? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-ubic','Sí',this,'si');showCond('cond-ubic',false)">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-ubic','No',this,'no');showCond('cond-ubic',true)">❌ No</button>
         </div>
         <input type="hidden" id="f-ubic">
         <div id="cond-ubic" class="cond-block hidden">
-          <div class="fld"><label>¿Ubicación sugerida por?</label>
+          <div class="fld"><label>¿La ubicación del modem fue sugerida por?</label>
             <div class="opts">
               <button type="button" class="opt-btn" onclick="selOpt('f-ubic-sug','Sugerida por técnico',this,'opt')">👷 Técnico</button>
               <button type="button" class="opt-btn" onclick="selOpt('f-ubic-sug','Sugerida por cliente',this,'opt')">👤 Cliente</button>
@@ -470,11 +469,11 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-caja-ov">
       </div>
       <div class="fld">
-        <label>¿Test de velocidad de acuerdo a lo contratado? <span class="req">*</span></label>
+        <label>¿El test de velocidad cumple con el plan contratado? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-velocidad','Sí',this,'si');showCond('cond-velocidad',false)">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-velocidad','No',this,'no');showCond('cond-velocidad',true)">❌ No</button>
-          <button type="button" class="opt-btn" onclick="selOpt('f-velocidad','No aplica',this,'opt')">➖ No aplica</button>
+          <button type="button" class="opt-btn" ➖ No aplica</button>
         </div>
         <input type="hidden" id="f-velocidad">
         <div id="cond-velocidad" class="cond-block hidden">
