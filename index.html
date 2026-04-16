@@ -428,8 +428,8 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
       <div class="fld">
         <label>¿La ONT está conectada con patchcord? <span class="req">*</span></label>
         <div class="opts">
-          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','Sí',this,'si')">✅ Patchcord</button>
-          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','No',this,'no')">❌ Directo</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','Sí',this,'si')">✅ Sí</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-patchcord','No',this,'no')">❌ No</button>
         </div>
         <input type="hidden" id="f-patchcord">
       </div>
@@ -911,7 +911,7 @@ function guardar(){
     f_grapado:   grap,
     f_grapado_ok: grap==='Sí, cable grapado'||grap==='Cable canalizado'?'Sí':'No',
     f_roseta:    ros,
-    f_patchcord: pat==='Sí, con patchcord'?'Sí':'No',
+    f_patchcord: pat,
     f_tendido:   tend,
     f_ubic:      ubic,
     f_ubicSug:   ubicSug,
@@ -1382,14 +1382,13 @@ async function fbSave(record){
   if(!url){setSyncSt('local');return;}
   setSyncSt('syncing');
   try{
-    const res=await fetch(url,{
-      method:'POST',
-      body:JSON.stringify({action:'save',record:flatRecord(record)})
-    });
-    const j=await res.json();
-    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
+    const payload=JSON.stringify({action:'save',record:flatRecord(record)});
+    // Usar no-cors para evitar problemas de preflight CORS con GAS
+    await fetch(url,{method:'POST',mode:'no-cors',body:payload});
+    setSyncSt('ok');
   }catch(e){console.error('GAS save error:',e);setSyncSt('error');}
 }
+
 
 // Eliminar una fila en Sheets
 async function fbDelete(id){
@@ -1397,14 +1396,11 @@ async function fbDelete(id){
   if(!url)return;
   setSyncSt('syncing');
   try{
-    const res=await fetch(url,{
-      method:'POST',
-      body:JSON.stringify({action:'delete',id:String(id)})
-    });
-    const j=await res.json();
-    if(j.ok) setSyncSt('ok'); else setSyncSt('error');
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',id:String(id)})});
+    setSyncSt('ok');
   }catch(e){console.error('GAS delete error:',e);setSyncSt('error');}
 }
+
 
 // Cargar todos los registros desde Sheets al inicio
 async function cargarFirebase(){
