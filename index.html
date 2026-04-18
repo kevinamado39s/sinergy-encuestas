@@ -473,7 +473,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-velocidad','Sí',this,'si');showCond('cond-velocidad',false)">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-velocidad','No',this,'no');showCond('cond-velocidad',true)">❌ No</button>
-          <button type="button" class="opt-btn" ➖ No aplica</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-velocidad','No aplica',this,'opt')">➖ No aplica</button>
         </div>
         <input type="hidden" id="f-velocidad">
         <div id="cond-velocidad" class="cond-block hidden">
@@ -677,7 +677,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
     </div>
   </div>
 </div>
-<div <div id="m-url" class="mover hidden">
+<div id="m-url" class="mover hidden">
   <div class="murl" style="max-width:480px">
     <p>📊 Conectar Google Sheets</p>
     <small style="display:block;color:#666;font-size:.78rem;margin-bottom:10px">
@@ -696,9 +696,49 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
 <!-- ══════════════ SCRIPT ══════════════ -->
 <script>
 /* ──────────── CONSTANTES ──────────── */
-const KEY = 'sinergy_enc_v2';
-const _timers = {};
-let _loaded = false;
+const KEY       = 'sinergy_enc_v2';
+const GAS_KEY   = 'sinergy_gas_url';
+const QUEUE_KEY = 'sinergy_queue';
+const _timers   = {};
+let _loaded     = false;
+
+/* ──────────── URL GAS ──────────── */
+function getGasUrl(){ return localStorage.getItem(GAS_KEY)||''; }
+function saveGasUrl(){
+  const v=(document.getElementById('in-gasurl').value||'').trim();
+  if(!v){ alert('Pega la URL del Web App de Apps Script.'); return; }
+  localStorage.setItem(GAS_KEY,v);
+  closeURL();
+  setSyncSt('local');
+  flushQueue();
+}
+function abrirURL(){
+  const el=document.getElementById('in-gasurl');
+  if(el) el.value=getGasUrl();
+  document.getElementById('m-url').classList.remove('hidden');
+}
+function closeURL(){ document.getElementById('m-url').classList.add('hidden'); }
+
+/* ──────────── COLA OFFLINE ──────────── */
+function getQueue(){ try{ return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); }catch(e){ return []; } }
+function setQueue(q){ localStorage.setItem(QUEUE_KEY,JSON.stringify(q)); }
+function addToQueue(item){ const q=getQueue(); q.push(item); setQueue(q); }
+
+/* ──────────── INDICADOR SYNC ──────────── */
+function setSyncSt(st){
+  const el=document.getElementById('sync-st');
+  if(!el) return;
+  const map={
+    ok:      ['✅ Sincronizado','ok-c'],
+    syncing: ['🔄 Sincronizando…','sic'],
+    local:   ['⚡ Local','loc-c'],
+    queue:   ['⏳ En cola','loc-c'],
+    error:   ['❌ Error sync','err-c']
+  };
+  const [txt,cls]=map[st]||['⚡ Local','loc-c'];
+  el.textContent=txt;
+  el.className=cls;
+}
 
 /* ──────────── DATOS ──────────── */
 function getData(){ try{ return JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ return []; } }
@@ -971,7 +1011,7 @@ function editarEnc(id){
   sv('f-tecnico',row.tecnico||''); sv('f-realizada',row.realizadaPor||'');
   sv('f-cuadrilla',row.cuadrilla||''); sv('f-servicio',row.servicio||'');
   sv('f-localidad',row.localidad||''); sv('f-cliente',row.cliente||'');
-  sv('f-cedula',row.cedula||''); sv(row.direccion||'');
+  sv('f-cedula',row.cedula||'');
   sv('f-potencia',row.potencia||'');
   sv('f-obs-cliente',row.obsCliente||''); sv('f-obs-tec',row.obsTecnica||'');
   sv('f-tipo-falla',row.tipoFalla||'');
@@ -1304,6 +1344,20 @@ const CLBLS=[
   'Obs. cliente','Obs. técnica'
 ];
 
+const CLBLS=['ID','Fecha','Técnico','Realizada por','Cuadrilla','Actividad','Localidad',
+  'Cliente','Cédula','Titular','Nombre autorizado','Hora inicio','Hora fin','Duración (min)',
+  'Puntualidad','Presentación','Profesionalismo','Explicó falla','Cobro adicional',
+  'Sin fallas post','Tipo falla','Recomendaría','★ Satisfacción','★ Amabilidad',
+  'Puntaje','Clasificación','Cable grapado','Roseta','Patchcord','Tendido OK',
+  'Ubicación modem','Quién sugirió','Caja OV','Velocidad OK','Vel. descarga (Mbps)',
+  'Vel. subida (Mbps)','★ Estética','Potencia (dBm)','Obs. cliente','Obs. técnica'];
+const CCOLS=['id','fecha','tecnico','realizadaPor','cuadrilla','servicio','localidad',
+  'cliente','cedula','titular','nombreAutorizado','horaInicio','horaFin','duracion',
+  'f_puntual','f_presenta','f_labor','f_explica','f_cobro','f_fallas','tipoFalla',
+  'recomienda','s_satisfaccion','s_amabilidad','puntajeSat','clasifSat',
+  'f_grapado','f_roseta','f_patchcord','f_tendido','f_ubic','f_ubicSug',
+  'f_cajaOV','f_velocidad','velDown','velUp','s_estetica','potencia','obsCliente','obsTecnica'];
+
 function expCSV(){
   const data=getData();
   if(!data.length){alert('No hay encuestas.');return;}
@@ -1530,15 +1584,9 @@ function sheetRowToRecord(row){
 }
 
 /* ──────────── CONFIG GAS ──────────── */
-function abrirURL(){
-  const saved=getGasUrl();
-  document.getElementById('in-gasurl').value=saved||'';
-  document.getElementById('m-url').classList.remove('hidden');
-}
-function closeURL(){document.getElementById('m-url').classList.add('hidden');}
-function saveGasUrl(){
-  const url=document.getElementById('in-gasurl').value.trim();
-  if(!url||!url.includes('script.google.com')){alert('⚠️ URL inválida. Debe ser de Google Apps Script.');return;}
+
+
+
   localStorage.setItem(GAS_KEY,url);
   closeURL();
   _loaded=false;
