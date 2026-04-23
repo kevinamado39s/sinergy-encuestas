@@ -679,15 +679,15 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
 </div>
 <div id="m-url" class="mover hidden">
   <div class="murl" style="max-width:480px">
-    <p>📊 Conectar Google Sheets</p>
+    <p>☁️ Configurar Cloudflare API</p>
     <small style="display:block;color:#666;font-size:.78rem;margin-bottom:10px">
-      Pega aquí la URL de tu Web App de Google Apps Script.
+      Pega aquí la URL base de tu Worker de Cloudflare.
     </small>
     <input type="text" id="in-gasurl" style="width:100%;padding:8px;border:1px solid #BCD;
       border-radius:6px;font-size:.76rem;font-family:monospace;margin-bottom:12px"
-      placeholder="https://script.google.com/macros/s/.../exec">
+      placeholder="https://sinergy-worker.sinergyencuestas.workers.dev">
     <div class="mbr">
-      <button class="btn bp" onclick="saveGasUrl()">📊 Conectar</button>
+      <button class="btn bp" onclick="saveGasUrl()">☁️ Guardar URL</button>
       <button class="btn bs" onclick="closeURL()">Cancelar</button>
     </div>
   </div>
@@ -702,15 +702,18 @@ const QUEUE_KEY = 'sinergy_queue';
 const _timers   = {};
 let _loaded     = false;
 
-/* ──────────── URL GAS ──────────── */
-function getGasUrl(){ return localStorage.getItem(GAS_KEY)||''; }
+/* ──────────── CLOUDFLARE API ──────────── */
+const DEFAULT_API_URL = 'https://sinergy-worker.sinergyencuestas.workers.dev';
+function getGasUrl(){
+  return (localStorage.getItem(GAS_KEY)||DEFAULT_API_URL).trim().replace(/\/$/,'');
+}
 function saveGasUrl(){
-  const v=(document.getElementById('in-gasurl').value||'').trim();
-  if(!v){ alert('Pega la URL del Web App de Apps Script.'); return; }
+  const v=(document.getElementById('in-gasurl').value||'').trim().replace(/\/$/,'');
+  if(!v){ alert('Pega la URL base del Worker de Cloudflare.'); return; }
   localStorage.setItem(GAS_KEY,v);
   closeURL();
-  setSyncSt('local');
-  flushQueue();
+  _loaded=false;
+  cargarFirebase();
 }
 function abrirURL(){
   const el=document.getElementById('in-gasurl');
@@ -883,11 +886,12 @@ function resetFotos(){
 
 function loadFotos(r){
   [1,2,3,4].forEach(n => {
-    const b64 = r['foto'+n]||'';
-    if(b64){
-      fotoData[n] = b64;
+    const val = r['foto'+n]||'';
+    if(val){
+      fotoData[n] = val;
       const prev = document.getElementById('prev-foto'+n);
-      prev.src = b64; prev.style.display='block';
+      prev.src = val;
+      prev.style.display='block';
       prev.closest('.foto-slot').querySelector('.foto-label').style.display='none';
       document.getElementById('rm-foto'+n).classList.remove('hidden');
     } else {
@@ -1086,7 +1090,7 @@ function renderHist(){
   if(!rows.length){c.innerHTML='<div class="empty">📋<p>No hay encuestas con estos filtros.</p></div>';return;}
   let h='<div class="tw"><table><thead><tr>'
     +'<th>Fecha</th><th>Duración</th><th>Técnico</th><th>Cliente</th><th>Localidad</th><th>Servicio</th>'
-    +'<th>Satisf.</th><th>Clasif.</th><th>Estética</th><th>Potencia</th><th>Recomienda</th><th>Fallas</th><th>Acciones</th>'
+    +'<th>Satisf.</th><th>Clasif.</th><th>Estética</th><th>Potencia</th><th>Recomienda</th><th>Sin Fallas</th><th>Acciones</th>'
     +'</tr></thead><tbody>';
   rows.forEach(r=>{
     const p=parseFloat(r.puntajeSat)||0;
@@ -1103,7 +1107,7 @@ function renderHist(){
       <td><span class="pill" style="background:${colorP(est)}22;color:${colorP(est)}">${est>0?est+'/5':'—'}</span></td>
       <td>${esc(r.potencia?r.potencia+' dBm':'—')}</td>
       <td><span class="badge ${r.recomienda==='Sí'?'b-si':'b-no'}">${esc(r.recomienda||'—')}</span></td>
-      <td><span class="badge ${r.f_fallas==='Sí'?'b-no':'b-si'}">${esc(r.f_fallas||'—')}</span></td>
+      <td><span class="badge ${r.f_fallas==='Sí'?'b-si':'b-no'}">${esc(r.f_fallas||'—')}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn bp bsm" onclick="editarEnc('${r.id}')">✏️</button>
         <button class="btn bd bsm" onclick="eliminarEnc('${r.id}')">✕</button>
@@ -1309,6 +1313,20 @@ function renderRes(){
 }
 
 
+
+function agrupar(data, campo, tipo){
+  const map={};
+  data.forEach(function(r){
+    const k=r[campo]||'(sin dato)';
+    if(!map[k]) map[k]={lbl:k,sum:0,n:0};
+    const v = tipo==='est' ? (+r.s_estetica||0) : (parseFloat(r.puntajeSat)||0);
+    if(v>0){ map[k].sum+=v; map[k].n++; }
+  });
+  return Object.values(map)
+    .map(function(x){ return {lbl:x.lbl, prom:x.n?x.sum/x.n:0, n:x.n}; })
+    .filter(function(x){ return x.n>0; })
+    .sort(function(a,b){ return b.prom-a.prom; });
+}
 function renderBars(cid,rows){
   const c=document.getElementById(cid);
   if(!rows.length){c.innerHTML='<div class="empty">📊<p>Sin datos.</p></div>';return;}
@@ -1325,24 +1343,7 @@ function renderBars(cid,rows){
 }
 
 /* ──────────── EXPORTAR ──────────── */
-const CCOLS=[
-  'id','fecha','tecnico','realizadaPor','cuadrilla','servicio','localidad',
-  'cliente','cedula','direccion','titular','nombreAutorizado',
-  'f_puntual','f_presenta','f_labor','f_explica','f_cobro','f_fallas','tipoFalla','recomienda',
-  's_satisfaccion','s_amabilidad','puntajeSat','clasifSat',
-  'f_grapado','f_roseta','f_patchcord','f_tendido','f_ubic','f_ubicSug','f_cajaOV',
-  'f_velocidad','velDown','velUp','s_estetica','potencia',
-  'obsCliente','obsTecnica'
-];
-const CLBLS=[
-  'ID','Fecha','Técnico','Realizada por','Cuadrilla (Placa)','Servicio','Localidad',
-  'Cliente','Cédula','Dirección','Titular','Nombre autorizado',
-  'Puntualidad','Presentación','Labor adecuada','Explicó falla','Cobro','Fallas post','Tipo falla','Recomienda',
-  'Estrella satisfacción','Estrella amabilidad','Puntaje satisfacción','Clasificación',
-  'Cable grapado','Roseta','Patchcord','Tendido OK','Ubicación modem','Quién sugirió','Caja OV etiquetada',
-  'Test velocidad','Vel. descarga (Mbps)','Vel. subida (Mbps)','Estética','Potencia dBm',
-  'Obs. cliente','Obs. técnica'
-];
+
 
 const CLBLS=['ID','Fecha','Técnico','Realizada por','Cuadrilla','Actividad','Localidad',
   'Cliente','Cédula','Titular','Nombre autorizado','Hora inicio','Hora fin','Duración (min)',
@@ -1432,173 +1433,138 @@ function calcDuracion(ini, fin){
   return h>0?`${h}h ${m}min`:`${m}min`;
 }
 
-/* ──────────── GOOGLE SHEETS SYNC ──────────── */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDc9Oy9BpEAR-6HeEoizYj8JSNfkaiqeMepVFvlEQLnw6TCim5SWfAqF7pv5-dTxbG/exec';
-const GAS_KEY = 'sinergy_gas_url';
-const QUEUE_KEY = 'sinergy_sync_queue';
-
-function setSyncSt(s){
-  const el=document.getElementById('sync-st');
-  if(!el)return;
-  const m={syncing:['sic','🔄 Sincronizando'],ok:['ok-c','✅ Sheets OK'],
-           error:['err-c','⚠️ Sin conexión'],local:['loc-c','⚡ Local'],queue:['sic','🕐 En cola...']};
-  const [cls,txt]=m[s]||m.local;
-  el.className=cls;el.textContent=txt;
+/* ──────────── CLOUDFLARE SYNC ──────────── */
+async function apiRequest(path, opts){
+  path = path || '';
+  opts = opts || {};
+  const base = getGasUrl();
+  const cfg = { headers: Object.assign({'Content-Type':'application/json'}, opts.headers||{}), ...opts };
+  delete cfg.headers;
+  cfg.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+  const res = await fetch(base + path, cfg);
+  const txt = await res.text();
+  let j = {};
+  try { j = txt ? JSON.parse(txt) : {}; } catch(e) { j = {ok:false, raw:txt}; }
+  if(!res.ok) throw new Error((j && (j.error||j.message)) || ('HTTP ' + res.status));
+  return j;
 }
 
-function getGasUrl(){
-  return localStorage.getItem(GAS_KEY)||GAS_URL;
+async function uploadPhotoToR2(base64, encuestaId, slot){
+  if(!base64) return '';
+  if(/^https?:\/\//i.test(base64)) return base64;
+  const j = await apiRequest('/upload', {
+    method:'POST',
+    body: JSON.stringify({ id: String(encuestaId||Date.now()), slot: Number(slot), imageBase64: base64 })
+  });
+  return j.url || (j.data && j.data.url) || '';
 }
 
-function getQueue(){try{return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');}catch(e){return[];}}
-function setQueue(q){localStorage.setItem(QUEUE_KEY,JSON.stringify(q));}
-function addToQueue(p){const q=getQueue();q.push(p);setQueue(q);}
+async function prepareRecordForCloudflare(record){
+  const out = Object.assign({}, record);
+  for(let i=1; i<=4; i++){
+    const key = 'foto' + i;
+    out[key] = await uploadPhotoToR2(out[key], out.id, i);
+  }
+  return out;
+}
 
-async function gasRequest(payload){
-  const url=getGasUrl();
-  if(!url)return false;
-  try{
-    const ctrl=new AbortController();
-    const timer=setTimeout(()=>ctrl.abort(),20000);
-    const body=new URLSearchParams({data:JSON.stringify(payload)});
-    const res=await fetch(url,{
-      method:'POST',
-      body:body,
-      signal:ctrl.signal
-    });
-    clearTimeout(timer);
-    const j=await res.json();
-    return j.ok===true;
-  }catch(e){console.warn('GAS request failed:',e.message);return false;}
+async function sendSaveRecord(record){
+  const ready = await prepareRecordForCloudflare(record);
+  const j = await apiRequest('/encuestas', {
+    method:'POST',
+    body: JSON.stringify({record: ready})
+  });
+  return j.record || ready;
+}
+
+async function sendDeleteRecord(id){
+  return await apiRequest('/encuestas/' + encodeURIComponent(String(id)), { method:'DELETE' });
 }
 
 async function flushQueue(){
-  const q=getQueue();
-  if(!q.length)return;
+  const q = getQueue();
+  if(!q.length) return;
   setSyncSt('syncing');
-  const failed=[];
-  for(const item of q){const ok=await gasRequest(item);if(!ok)failed.push(item);}
-  setQueue(failed);
-  if(!failed.length)setSyncSt('ok');else setSyncSt('queue');
-}
-
-// Guardar o actualizar una fila en Sheets
-async function fbSave(record){
-  const url=getGasUrl();
-  if(!url){setSyncSt('local');return;}
-  setSyncSt('syncing');
-  const payload={action:'save',record:flatRecord(record)};
-  const ok=await gasRequest(payload);
-  if(ok){setSyncSt('ok');}
-  else{addToQueue(payload);setSyncSt('queue');console.warn('En cola para reintento.');}
-}
-
-
-// Eliminar una fila en Sheets
-async function fbDelete(id){
-  const url=getGasUrl();
-  if(!url)return;
-  setSyncSt('syncing');
-  const payload={action:'delete',id:String(id)};
-  const ok=await gasRequest(payload);
-  if(ok){setSyncSt('ok');}else{addToQueue(payload);setSyncSt('queue');}
-}
-
-
-// Cargar todos los registros desde Sheets al inicio
-async function cargarFirebase(){
-  if(_loaded)return;
-  _loaded=true;
-  const url=getGasUrl();
-  if(!url){setSyncSt('local');renderHist();renderRes();return;}
-  setSyncSt('syncing');
-  // Vaciar cola de pendientes primero
-  await flushQueue();
-  try{
-    const ctrl=new AbortController();
-    const timer=setTimeout(()=>ctrl.abort(),15000);
-    const res=await fetch(url+'?t='+Date.now(),{method:'GET',signal:ctrl.signal});
-    clearTimeout(timer);
-    const j=await res.json();
-    if(j.ok && Array.isArray(j.data)){
-      const mapped=j.data.map(function(row){return sheetRowToRecord(row);});
-      const localData=getData();
-      const sheetIds=new Set(mapped.map(function(r){return String(r.id);}));
-      // Conservar registros locales que no están en Sheets aún
-      const soloLocales=localData.filter(function(r){return !sheetIds.has(String(r.id));});
-      localStorage.setItem(KEY,JSON.stringify([...mapped,...soloLocales]));
-      // Subir al Sheet los que solo estaban en local
-      for(const r of soloLocales){ await fbSave(r); }
-      setSyncSt(getQueue().length?'queue':'ok');
-    } else {
-      // Sheet vacío o error: subir todo local
-      const local=getData();
-      for(const r of local){ await fbSave(r); }
-      setSyncSt(getQueue().length?'queue':'ok');
-    }
-  }catch(e){
-    console.error('GAS load error:',e.message);
-    setSyncSt(getQueue().length?'queue':'error');
+  const failed = [];
+  for(const item of q){
+    try{
+      if(item.action==='save') await sendSaveRecord(item.record);
+      else if(item.action==='delete') await sendDeleteRecord(item.id);
+    } catch(e){ failed.push(item); }
   }
-  renderHist();renderRes();
+  setQueue(failed);
+  setSyncSt(failed.length ? 'queue' : 'ok');
 }
 
-// Convertir registro interno → objeto con claves del Sheet
-function flatRecord(r){
-  return {
-    'ID':r.id||'','Fecha':r.fecha||'','Técnico':r.tecnico||'','Realizada por':r.realizadaPor||'',
-    'Cuadrilla':r.cuadrilla||'','Actividad':r.servicio||'','Localidad':r.localidad||'',
-    'Cliente':r.cliente||'','Cédula':r.cedula||'','Titular':r.titular||'','Nombre autorizado':r.nombreAutorizado||'',
-    'Hora inicio':r.horaInicio||'','Hora fin':r.horaFin||'','Duración':r.duracion||'',
-    'Puntualidad':r.f_puntual||'','Presentación':r.f_presenta||'','Profesionalismo':r.f_labor||'',
-    'Explicó falla':r.f_explica||'','Cobro adicional':r.f_cobro||'','Fallas post':r.f_fallas||'',
-    'Tipo falla':r.tipoFalla||'','Recomendaría':r.recomienda||'',
-    'Estrella satisfacción':r.s_satisfaccion||'','Estrella amabilidad':r.s_amabilidad||'',
-    'Puntaje':r.puntajeSat||'','Clasificación':r.clasifSat||'',
-    'Cable grapado':r.f_grapado||'','Roseta':r.f_roseta||'','Patchcord':r.f_patchcord||'',
-    'Tendido OK':r.f_tendido||'','Ubicación modem':r.f_ubic||'','Quién sugirió':r.f_ubicSug||'',
-    'Caja OV':r.f_cajaOV||'','Velocidad OK':r.f_velocidad||'',
-    'Vel. descarga':r.velDown||'','Vel. subida':r.velUp||'','Estética':r.s_estetica||'',
-    'Potencia dBm':r.potencia||'','Obs. cliente':r.obsCliente||'','Obs. técnica':r.obsTecnica||''
-  };
+async function fbSave(record){
+  const url = getGasUrl();
+  if(!url){ setSyncSt('local'); return; }
+  setSyncSt('syncing');
+  try{
+    const saved = await sendSaveRecord(record);
+    const data = getData();
+    const idx = data.findIndex(r => String(r.id) === String(saved.id || record.id));
+    if(idx >= 0){ data[idx] = Object.assign({}, data[idx], saved); setData(data); }
+    setSyncSt('ok');
+  } catch(e){
+    addToQueue({action:'save', record});
+    setSyncSt('queue');
+    console.warn('Cloudflare save queued:', e.message);
+  }
+  renderHist(); renderRes();
 }
 
-// Convertir fila del Sheet → objeto interno de la app
-function sheetRowToRecord(row){
-  return {
-    id:row['ID'],fecha:row['Fecha'],tecnico:row['Técnico'],realizadaPor:row['Realizada por'],
-    cuadrilla:row['Cuadrilla'],servicio:row['Actividad'],localidad:row['Localidad'],
-    cliente:row['Cliente'],cedula:row['Cédula'],titular:row['Titular'],nombreAutorizado:row['Nombre autorizado'],
-    horaInicio:row['Hora inicio'],horaFin:row['Hora fin'],duracion:row['Duración'],
-    f_puntual:row['Puntualidad'],f_presenta:row['Presentación'],f_labor:row['Profesionalismo'],
-    f_explica:row['Explicó falla'],f_cobro:row['Cobro adicional'],f_fallas:row['Fallas post'],
-    tipoFalla:row['Tipo falla'],recomienda:row['Recomendaría'],
-    s_satisfaccion:row['Estrella satisfacción'],s_amabilidad:row['Estrella amabilidad'],
-    puntajeSat:row['Puntaje'],clasifSat:row['Clasificación'],
-    f_grapado:row['Cable grapado'],f_roseta:row['Roseta'],f_patchcord:row['Patchcord'],
-    f_tendido:row['Tendido OK'],f_ubic:row['Ubicación modem'],f_ubicSug:row['Quién sugirió'],
-    f_cajaOV:row['Caja OV'],f_velocidad:row['Velocidad OK'],
-    velDown:row['Vel. descarga'],velUp:row['Vel. subida'],s_estetica:row['Estética'],
-    potencia:row['Potencia dBm'],obsCliente:row['Obs. cliente'],obsTecnica:row['Obs. técnica']
-  };
+async function fbDelete(id){
+  const url = getGasUrl();
+  if(!url) return;
+  setSyncSt('syncing');
+  try{ await sendDeleteRecord(id); setSyncSt('ok'); }
+  catch(e){ addToQueue({action:'delete', id:String(id)}); setSyncSt('queue'); }
 }
 
-/* ──────────── CONFIG GAS ──────────── */
-
-
-
-  localStorage.setItem(GAS_KEY,url);
-  closeURL();
-  _loaded=false;
-  cargarFirebase();
+async function cargarFirebase(){
+  if(_loaded) return;
+  _loaded = true;
+  const url = getGasUrl();
+  if(!url){ setSyncSt('local'); renderHist(); renderRes(); return; }
+  setSyncSt('syncing');
+  try{
+    await flushQueue();
+    const j = await apiRequest('/encuestas');
+    const remote = Array.isArray(j) ? j : (Array.isArray(j.data) ? j.data : (Array.isArray(j.records) ? j.records : []));
+    const local = getData();
+    const map = new Map();
+    remote.forEach(r => map.set(String(r.id), r));
+    local.forEach(r => { if(!map.has(String(r.id))) map.set(String(r.id), r); });
+    const merged = Array.from(map.values()).sort(function(a,b){
+      return String(b.fecha||'').localeCompare(String(a.fecha||''));
+    });
+    setData(merged);
+    const remoteIds = new Set(remote.map(r => String(r.id)));
+    const onlyLocal = local.filter(r => !remoteIds.has(String(r.id)));
+    for(const r of onlyLocal){
+      try{ await sendSaveRecord(r); } catch(e){ addToQueue({action:'save', record:r}); }
+    }
+    setSyncSt(getQueue().length ? 'queue' : 'ok');
+  } catch(e){
+    console.error('Cloudflare load error:', e.message);
+    setSyncSt(getQueue().length ? 'queue' : 'error');
+  }
+  renderHist(); renderRes();
 }
 
 /* ──────────── INIT ──────────── */
 document.addEventListener('DOMContentLoaded',function(){
-  initStars();
-  sv('f-fecha',hoy());
-  sv('f-hora-inicio',new Date().toTimeString().slice(0,5));
-  cargarFirebase();
+  // Init UI immediately - independent of network
+  try{ initStars(); } catch(e){ console.error('initStars error:', e); }
+  try{ sv('f-fecha',hoy()); } catch(e){}
+  try{ sv('f-hora-inicio',new Date().toTimeString().slice(0,5)); } catch(e){}
+  try{ renderHist(); } catch(e){}
+  try{ renderRes(); } catch(e){}
+  // Then sync with Cloudflare async
+  setTimeout(function(){
+    cargarFirebase().catch(function(e){ console.error('cargarFirebase error:', e); setSyncSt('error'); });
+  }, 100);
 });
 /* ──────────── EXPORTAR ──────────── */
 
