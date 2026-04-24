@@ -331,7 +331,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         <input type="hidden" id="f-presenta">
       </div>
       <div class="fld">
-        <label>¿El técnico demostró profesionalismo durante la visita? <span class="req">*</span></label>
+        <label>¿El técnico resolvió todas sus dudas de manera técnica y profesional? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-labor','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-labor','No',this,'no')">❌ No</button>
@@ -375,11 +375,32 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
         </div>
         <input type="hidden" id="f-recomienda">
       </div>
+      <div class="fld">
+        <label>¿El técnico dejó el sitio en condiciones de orden y aseo al finalizar la actividad? <span class="req">*</span></label>
+        <div class="opts">
+          <button type="button" class="opt-btn" onclick="selOpt('f-aseo','Sí',this,'si')">✅ Sí</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-aseo','No',this,'no')">❌ No</button>
+        </div>
+        <input type="hidden" id="f-aseo">
+      </div>
+      <div class="fld">
+        <label>¿La actividad se realizó sin generar garantía? <span class="req">*</span></label>
+        <div class="opts">
+          <button type="button" class="opt-btn" onclick="selOpt('f-garantia','Sí',this,'si');showCond('cond-garantia',false)">✅ Sí</button>
+          <button type="button" class="opt-btn" onclick="selOpt('f-garantia','No',this,'no');showCond('cond-garantia',true)">❌ No</button>
+        </div>
+        <input type="hidden" id="f-garantia">
+        <div id="cond-garantia" class="cond-block hidden">
+          <div class="fld"><label>Describa el motivo de la garantía generada</label>
+            <input type="text" id="f-motivo-garantia" placeholder="Describir el motivo de la garantía...">
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Calificaciones con estrellas -->
     <div class="stars-wrap">
-      <h4>Califique de 1 (muy malo) a 5 (excelente)</h4>
+      <h4>Califique de 1 (muy malo) a 5 (excelente) — resultado en %</h4>
       <div class="s-row">
         <span class="s-lbl">¿Qué tan satisfecho está con el trabajo realizado?</span>
         <div class="s-stars" data-key="satisfaccion">
@@ -410,7 +431,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
   <div class="sec-body">
     <div class="fg2">
       <div class="fld">
-        <label>¿El cable Drop se encuentra grapado? <span class="req">*</span></label>
+        <label>¿El cableado se encuentra instalado y grapado correctamente? <span class="req">*</span></label>
         <div class="opts">
           <button type="button" class="opt-btn" onclick="selOpt('f-grapado','Sí',this,'si')">✅ Sí</button>
           <button type="button" class="opt-btn" onclick="selOpt('f-grapado','No',this,'no')">❌ No</button>
@@ -623,7 +644,8 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
   <div id="panel-metas" class="card hidden" style="margin-bottom:10px">
     <h2 style="margin-bottom:10px">🎯 Metas mensuales</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
-      <label style="font-size:.82rem">Satisfacción promedio ≥<br><input type="number" id="meta-sat" step="0.1" min="1" max="5" value="4.0" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> / 5</label>
+      <label style="font-size:.82rem">Satisfacción promedio ≥<br><input type="number" id="meta-sat" step="1" min="0" max="100" value="80" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
+      <label style="font-size:.82rem">Amabilidad promedio ≥<br><input type="number" id="meta-amb" step="1" min="0" max="100" value="80" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
       <label style="font-size:.82rem">% Recomendarían ≥<br><input type="number" id="meta-rec" step="1" min="0" max="100" value="80" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
       <label style="font-size:.82rem">% Sin fallas post-visita ≥<br><input type="number" id="meta-fall" step="1" min="0" max="100" value="85" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
       <label style="font-size:.82rem">% Cumplimiento técnico ≥<br><input type="number" id="meta-tec" step="1" min="0" max="100" value="85" style="width:80px;padding:4px;border:1px solid #BCD;border-radius:4px"> %</label>
@@ -650,6 +672,7 @@ tbody td{padding:6px 9px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
   </div>
   <div class="card"><h2>📊 Satisfacción por cuadrilla</h2><div id="br-cuad"></div></div>
   <div class="card"><h2>📊 Satisfacción por técnico</h2><div id="br-tec"></div></div>
+  <div class="card"><h2>🤝 Amabilidad por técnico</h2><div id="br-tec-amb"></div></div>
   <div class="card"><h2>🗺️ Satisfacción por localidad</h2><div id="br-loc"></div></div>
   <div class="card"><h2>🔧 Estética por cuadrilla</h2><div id="br-cal"></div></div>
 </div>
@@ -824,8 +847,12 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function hoy(){return new Date().toISOString().split('T')[0];}
 
 function calcScoreSat(r){
-  const vals=[+r.s_satisfaccion||0,+r.s_amabilidad||0].filter(x=>x>0);
-  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+  const sat=+(r.s_satisfaccion||r.satisfaccion)||0;
+  return sat>0?sat*20:0;
+}
+function calcScoreAmb(r){
+  const amb=+(r.s_amabilidad||r.amabilidad)||0;
+  return amb>0?amb*20:0;
 }
 function calcScoreTec(r){
   const qs=['f_puntual','f_presenta','f_labor','f_explica','f_grapado_ok','f_roseta','f_patchcord','f_tendido'];
@@ -833,10 +860,21 @@ function calcScoreTec(r){
   return Math.round(positivos/qs.length*100);
 }
 function clasif(p){
-  if(p>=4.5)return'Excelente';if(p>=3.5)return'Buena';if(p>=2.5)return'Regular';if(p>0)return'Deficiente';return'Sin datos';
+  if(p>=87)return'Excelente';if(p>=62)return'Buena';if(p>=37)return'Regular';if(p>0)return'Deficiente';return'Sin datos';
 }
 function bClasif(c){return{Excelente:'b-exc',Buena:'b-bue',Regular:'b-reg',Deficiente:'b-def'}[c]||'';}
-function colorP(p){if(p>=4.5)return'#437a22';if(p>=3.5)return'#2E75B6';if(p>=2.5)return'#BF8F00';return'#C00000';}
+function colorP(p){if(p>=87)return'#437a22';if(p>=62)return'#2E75B6';if(p>=37)return'#BF8F00';return'#C00000';}
+function colorEst(p){if(p>=4.5)return'#437a22';if(p>=3.5)return'#2E75B6';if(p>=2.5)return'#BF8F00';if(p>0)return'#C00000';return'#999';}
+function normSat(r){
+  const sat=+(r.s_satisfaccion)||0;
+  if(sat>0) return sat*20;
+  const p=parseFloat(r.puntajeSat)||0;
+  return p>5?p:p*20; // compatibilidad registros viejos
+}
+function normAmb(r){
+  const amb=+(r.s_amabilidad)||0;
+  return amb>0?amb*20:0;
+}
 function bCuad(c){if(c==='Tendido Pitalito')return'b-tp';if(c==='Troncal')return'b-tr';return'b-tg';}
 
 
@@ -910,6 +948,7 @@ function guardar(){
   const punt=getOpt('f-puntual'), pres=getOpt('f-presenta'), lab=getOpt('f-labor');
   const expl=getOpt('f-explica'), cobro=getOpt('f-cobro'), fall=getOpt('f-fallas');
   const rec=getOpt('f-recomienda');
+  const aseo=getOpt('f-aseo'), garantia=getOpt('f-garantia');
   const grap=getOpt('f-grapado'), ros=getOpt('f-roseta'), pat=getOpt('f-patchcord'), tend=getOpt('f-tendido');
   const ubic=getOpt('f-ubic'), ubicSug=getOpt('f-ubic-sug');
   const pot=v('f-potencia');
@@ -922,6 +961,8 @@ function guardar(){
   if(!loc){alert('⚠️ Selecciona la localidad.');return;}
   if(!cli){alert('⚠️ Escribe el nombre.');return;}
   if(!rec){alert('⚠️ Indica si el cliente recomienda el servicio.');return;}
+  if(!aseo){alert('⚠️ Indica si el técnico dejó el sitio en orden y aseo.');return;}
+  if(!garantia){alert('⚠️ Indica si se generó una garantía después de la actividad.');return;}
   if(!v('f-hora-inicio')){alert('⚠️ Ingresa la hora de inicio.');return;}
   if(!tit){alert('⚠️ Indica si atiende el titular del servicio.');return;}
   if(!punt){alert('⚠️ Responde: ¿Se cumplió con la fecha y hora?');return;}
@@ -940,6 +981,7 @@ function guardar(){
 
   const isNew=!id;
   const pSat=calcScoreSat(SV);
+  const pAmb=calcScoreAmb(SV);
   const row={
     id:          isNew?String(Date.now()):String(id),
     fecha,
@@ -963,6 +1005,9 @@ function guardar(){
     f_fallas:    fall,
     tipoFalla:   fall==='Sí'?v('f-tipo-falla'):'',
     recomienda:  rec,
+    f_aseo:      aseo,
+    f_garantia:  garantia,
+    motivoGarantia: garantia==='No'?v('f-motivo-garantia'):'',
     // Estrellas satisfacción
     s_satisfaccion: SV.satisfaccion,
     s_amabilidad:   SV.amabilidad,
@@ -991,7 +1036,8 @@ function guardar(){
     foto3: fotoData[3]||'',
     foto4: fotoData[4]||'',
     // Calculados
-    puntajeSat:  Math.round(pSat*100)/100,
+    puntajeSat:  pSat,
+    puntajeAmb:  pAmb,
     clasifSat:   clasif(pSat),
     updatedAt:   new Date().toISOString()
   };
@@ -1026,6 +1072,10 @@ function editarEnc(id){
   setOpt('f-fallas',row.f_fallas||'');
   if(row.f_fallas==='Sí') showCond('cond-falla',true);
   setOpt('f-recomienda',row.recomienda||'');
+  setOpt('f-aseo',row.f_aseo||'');
+  setOpt('f-garantia',row.f_garantia||'');
+  sv('f-motivo-garantia',row.motivoGarantia||'');
+  if(row.f_garantia==='No') showCond('cond-garantia',true);
   setOpt('f-grapado',row.f_grapado||''); setOpt('f-roseta',row.f_roseta||'');
   setOpt('f-patchcord',row.f_patchcord==='Sí'?'Sí, con patchcord':'No, conector mecánico');
   setOpt('f-tendido',row.f_tendido||''); setOpt('f-ubic',row.f_ubic||'');
@@ -1058,12 +1108,12 @@ function resetForm(){
     'f-localidad','f-cliente','f-cedula','f-potencia',
     'f-hora-inicio','f-hora-fin','f-obs-cliente','f-obs-tec','f-tipo-falla',
     'f-titular','f-puntual','f-presenta','f-labor','f-explica','f-cobro',
-    'f-fallas','f-recomienda','f-grapado','f-roseta','f-patchcord',
+    'f-fallas','f-recomienda','f-aseo','f-garantia','f-grapado','f-roseta','f-patchcord',
     'f-tendido','f-ubic','f-ubic-sug'];
   campos.forEach(id=>sv(id,''));
   document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('sel-si','sel-no','sel-opt'));
-  ['cond-falla','cond-ubic','cond-autorizado','cond-velocidad'].forEach(id=>showCond(id,false));
-  sv('f-nombre-autorizado',''); sv('f-vel-down',''); sv('f-vel-up','');
+  ['cond-falla','cond-ubic','cond-autorizado','cond-velocidad','cond-garantia'].forEach(id=>showCond(id,false));
+  sv('f-nombre-autorizado',''); sv('f-vel-down',''); sv('f-vel-up',''); sv('f-motivo-garantia','');
   resetFotos();
   resetStars();
   sv('f-fecha',hoy());
@@ -1090,10 +1140,10 @@ function renderHist(){
   if(!rows.length){c.innerHTML='<div class="empty">📋<p>No hay encuestas con estos filtros.</p></div>';return;}
   let h='<div class="tw"><table><thead><tr>'
     +'<th>Fecha</th><th>Duración</th><th>Técnico</th><th>Cliente</th><th>Localidad</th><th>Servicio</th>'
-    +'<th>Satisf.</th><th>Clasif.</th><th>Estética</th><th>Potencia</th><th>Recomienda</th><th>Sin Fallas</th><th>Acciones</th>'
+    +'<th>Satisf.</th><th>Clasif.</th><th>Estética</th><th>Potencia</th><th>Recomienda</th><th>Fallas</th><th>Acciones</th>'
     +'</tr></thead><tbody>';
   rows.forEach(r=>{
-    const p=parseFloat(r.puntajeSat)||0;
+    const p=normSat(r);
     const est=+r.s_estetica||0;
     h+=`<tr>
       <td>${esc(r.fecha)}</td>
@@ -1102,12 +1152,12 @@ function renderHist(){
       <td>${esc(r.cliente)}</td>
       <td>${esc(r.localidad)}</td>
       <td>${esc(r.servicio)}</td>
-      <td><span class="pill" style="background:${colorP(p)}22;color:${colorP(p)}">${p>0?p.toFixed(1)+'/5':'—'}</span></td>
+      <td><span class="pill" style="background:${colorP(p)}22;color:${colorP(p)}">${p>0?p.toFixed(0)+'%':'—'}</span></td>
       <td><span class="badge ${bClasif(r.clasifSat)}">${esc(r.clasifSat||'—')}</span></td>
       <td><span class="pill" style="background:${colorP(est)}22;color:${colorP(est)}">${est>0?est+'/5':'—'}</span></td>
       <td>${esc(r.potencia?r.potencia+' dBm':'—')}</td>
       <td><span class="badge ${r.recomienda==='Sí'?'b-si':'b-no'}">${esc(r.recomienda||'—')}</span></td>
-      <td><span class="badge ${r.f_fallas==='Sí'?'b-si':'b-no'}">${esc(r.f_fallas||'—')}</span></td>
+      <td><span class="badge ${r.f_fallas==='Sí'?'b-si':'b-no'}">${r.f_fallas==='Sí'?'Sin fallas':r.f_fallas==='No'?'Con fallas':esc(r.f_fallas||'—')}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn bp bsm" onclick="editarEnc('${r.id}')">✏️</button>
         <button class="btn bd bsm" onclick="eliminarEnc('${r.id}')">✕</button>
@@ -1127,13 +1177,14 @@ function limpiarFil(){
 /* ──────────── METAS ──────────── */
 const META_KEY='sinergy_metas';
 function getMetas(){
-  const def={sat:4.0,rec:80,fall:15,tec:85,tiempo:25};
+  const def={sat:80,rec:80,amb:80,fall:15,tec:85,tiempo:25};
   try{return Object.assign(def,JSON.parse(localStorage.getItem(META_KEY)||'{}'));}
   catch(e){return def;}
 }
 function guardarMetas(){
   const m={
-    sat:  parseFloat(document.getElementById('meta-sat').value)||4.0,
+    sat:  parseFloat(document.getElementById('meta-sat').value)||80,
+    amb:  parseFloat(document.getElementById('meta-amb').value)||80,
     rec:  parseFloat(document.getElementById('meta-rec').value)||80,
     fall: parseFloat(document.getElementById('meta-fall').value)||15,
     tec:  parseFloat(document.getElementById('meta-tec').value)||85,
@@ -1146,6 +1197,7 @@ function toggleMetas(){
   const p=document.getElementById('panel-metas');
   const m=getMetas();
   document.getElementById('meta-sat').value=m.sat;
+  document.getElementById('meta-amb').value=m.amb||80;
   document.getElementById('meta-rec').value=m.rec;
   document.getElementById('meta-fall').value=m.fall;
   document.getElementById('meta-tec').value=m.tec;
@@ -1162,7 +1214,7 @@ function renderTrend(allData){
     if(!r.fecha)return;
     const ym=r.fecha.slice(0,7);
     if(!map[ym])map[ym]=[];
-    const p=parseFloat(r.puntajeSat)||0;
+    const p=normSat(r);
     if(p>0)map[ym].push(p);
   });
   const meses=Object.keys(map).sort().slice(-12);
@@ -1174,7 +1226,7 @@ function renderTrend(allData){
   }));
   const W=Math.max(500,meses.length*80),H=160,PAD=40;
   const xs=pts.map((_,i)=>PAD+i*(W-PAD*2)/(pts.length-1));
-  const ys=pts.map(p=>H-PAD-(p.v-1)/(4)*(H-PAD*2));
+  const ys=pts.map(p=>H-PAD-(p.v/100)*(H-PAD*2));
   const poly=xs.map((x,i)=>x+','+ys[i]).join(' ');
   const fill=xs[0]+','+(H-PAD)+' '+poly+' '+xs[xs.length-1]+','+(H-PAD);
   let svg='<svg width="'+W+'" height="'+H+'" style="font-family:Arial,sans-serif">'
@@ -1186,7 +1238,7 @@ function renderTrend(allData){
   pts.forEach(function(p,i){
     const col=colorP(p.v);
     svg+='<circle cx="'+xs[i]+'" cy="'+ys[i]+'" r="5" fill="'+col+'" stroke="white" stroke-width="1.5"/>';
-    svg+='<text x="'+xs[i]+'" y="'+(ys[i]-10)+'" text-anchor="middle" font-size="11" font-weight="bold" fill="'+col+'">'+p.v.toFixed(1)+'</text>';
+    svg+='<text x="'+xs[i]+'" y="'+(ys[i]-10)+'" text-anchor="middle" font-size="11" font-weight="bold" fill="'+col+'">'+p.v.toFixed(0)+'%</text>';
     svg+='<text x="'+xs[i]+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="#666">'+p.lbl+'</text>';
     svg+='<text x="'+xs[i]+'" y="'+(H-18)+'" text-anchor="middle" font-size="9" fill="#aaa">('+p.n+')</text>';
   });
@@ -1215,12 +1267,14 @@ function renderRes(){
   }
   const M=getMetas();
   const total=data.length;
-  const pts=data.map(function(r){return parseFloat(r.puntajeSat)||0;}).filter(function(p){return p>0;});
+  const pts=data.map(function(r){return normSat(r);}).filter(function(p){return p>0;});
   const prom=pts.length?pts.reduce(function(a,b){return a+b;},0)/pts.length:0;
-  const pctSat=total?(data.filter(function(r){return parseFloat(r.puntajeSat)>=4;}).length/total*100):0;
+  const ptsAmb=data.map(function(r){return normAmb(r);}).filter(function(p){return p>0;});
+  const promAmb=ptsAmb.length?ptsAmb.reduce(function(a,b){return a+b;},0)/ptsAmb.length:0;
   const pctRec=data.filter(function(r){return r.recomienda==='Sí';}).length/total*100;
   const pctFall=data.filter(function(r){return r.f_fallas==='Sí';}).length/total*100;
   const pctCobro=data.filter(function(r){return r.f_cobro==='Sí';}).length/total*100;
+  const pctAseo=data.filter(function(r){return r.f_aseo==='Sí';}).length/total*100;
 
   // Tiempo promedio
   let sumT=0,cntT=0;
@@ -1267,8 +1321,9 @@ function renderRes(){
   }
   kpiC.innerHTML=
     '<div class="kpi"><div class="kpi-v">'+total+'</div><div class="kpi-l">📋 Total encuestas</div></div>'+
-    kpiMeta(prom>0?prom.toFixed(2):'—',M.sat,false,'Satisfacción prom.','/5','⭐')+
-    kpiMeta(pctSat.toFixed(0)+'%',Math.round(M.sat*20),false,'Satisfechos ≥4★','%','😊')+
+    kpiMeta(prom>0?prom.toFixed(0)+'%':'—',M.sat,false,'Satisfacción promedio','%','⭐')+
+    kpiMeta(promAmb>0?promAmb.toFixed(0)+'%':'—',M.amb,false,'Amabilidad promedio','%','🤝')+
+    kpiMeta(pctAseo.toFixed(0)+'%',90,false,'Orden y aseo','%','🧹')+
     kpiMeta(pctRec.toFixed(0)+'%',M.rec,false,'Recomendarían','%','👍')+
     kpiMeta(pctFall.toFixed(0)+'%',M.fall,false,'Sin fallas post-visita','%','✅')+
     kpiMeta(pctCobro.toFixed(0)+'%',90,false,'Sin cobros adicionales','%','💰')+
@@ -1308,8 +1363,9 @@ function renderRes(){
 
   renderBars('br-cuad',agrupar(data,'cuadrilla','sat'));
   renderBars('br-tec', agrupar(data,'tecnico','sat').slice(0,10));
+  renderBars('br-tec-amb', agrupar(data,'tecnico','amb').slice(0,10));
   renderBars('br-loc', agrupar(data,'localidad','sat').slice(0,10));
-  renderBars('br-cal', agrupar(data,'cuadrilla','est'));
+  renderBars('br-cal', agrupar(data,'cuadrilla','est'),'est');
 }
 
 
@@ -1319,7 +1375,7 @@ function agrupar(data, campo, tipo){
   data.forEach(function(r){
     const k=r[campo]||'(sin dato)';
     if(!map[k]) map[k]={lbl:k,sum:0,n:0};
-    const v = tipo==='est' ? (+r.s_estetica||0) : (parseFloat(r.puntajeSat)||0);
+    const v = tipo==='est' ? (+r.s_estetica||0) : tipo==='amb' ? normAmb(r) : normSat(r);
     if(v>0){ map[k].sum+=v; map[k].n++; }
   });
   return Object.values(map)
@@ -1327,17 +1383,19 @@ function agrupar(data, campo, tipo){
     .filter(function(x){ return x.n>0; })
     .sort(function(a,b){ return b.prom-a.prom; });
 }
-function renderBars(cid,rows){
+function renderBars(cid,rows,tipo){
   const c=document.getElementById(cid);
   if(!rows.length){c.innerHTML='<div class="empty">📊<p>Sin datos.</p></div>';return;}
-  const mx=Math.max(...rows.map(r=>r.prom),5);
+  const isEst=(tipo==='est');
+  const mx=isEst?5:Math.max(...rows.map(r=>r.prom),100);
   c.innerHTML=rows.map(r=>{
     const pct=(r.prom/mx*100).toFixed(1);
-    const col=colorP(r.prom);
+    const col=isEst?colorEst(r.prom):colorP(r.prom);
+    const lbl=isEst?(r.prom>0?r.prom.toFixed(1)+'/5':'—'):(r.prom>0?r.prom.toFixed(0)+'%':'—');
     return `<div class="br-row">
       <span class="br-lbl" title="${esc(r.lbl)}">${esc(r.lbl)}</span>
       <div class="br-trk"><div class="br-fill" style="width:${pct}%;background:${col}"></div></div>
-      <span class="br-num">${r.prom>0?r.prom.toFixed(2)+'/5':'—'} <span style="color:#aaa;font-weight:400">(${r.n})</span></span>
+      <span class="br-num">${lbl} <span style="color:#aaa;font-weight:400">(${r.n})</span></span>
     </div>`;
   }).join('');
 }
@@ -1348,14 +1406,14 @@ function renderBars(cid,rows){
 const CLBLS=['ID','Fecha','Técnico','Realizada por','Cuadrilla','Actividad','Localidad',
   'Cliente','Cédula','Titular','Nombre autorizado','Hora inicio','Hora fin','Duración (min)',
   'Puntualidad','Presentación','Profesionalismo','Explicó falla','Cobro adicional',
-  'Sin fallas post','Tipo falla','Recomendaría','★ Satisfacción','★ Amabilidad',
-  'Puntaje','Clasificación','Cable grapado','Roseta','Patchcord','Tendido OK',
+  'Sin fallas post','Tipo falla','Recomendaría','Orden y aseo','Garantía post-visita','Motivo garantía','★ Satisfacción','★ Amabilidad',
+  'Puntaje Satisfacción','Puntaje Amabilidad','Clasificación','Cable grapado','Roseta','Patchcord','Tendido OK',
   'Ubicación modem','Quién sugirió','Caja OV','Velocidad OK','Vel. descarga (Mbps)',
   'Vel. subida (Mbps)','★ Estética','Potencia (dBm)','Obs. cliente','Obs. técnica'];
 const CCOLS=['id','fecha','tecnico','realizadaPor','cuadrilla','servicio','localidad',
   'cliente','cedula','titular','nombreAutorizado','horaInicio','horaFin','duracion',
   'f_puntual','f_presenta','f_labor','f_explica','f_cobro','f_fallas','tipoFalla',
-  'recomienda','s_satisfaccion','s_amabilidad','puntajeSat','clasifSat',
+  'recomienda','f_aseo','f_garantia','motivoGarantia','s_satisfaccion','s_amabilidad','puntajeSat','puntajeAmb','clasifSat',
   'f_grapado','f_roseta','f_patchcord','f_tendido','f_ubic','f_ubicSug',
   'f_cajaOV','f_velocidad','velDown','velUp','s_estetica','potencia','obsCliente','obsTecnica'];
 
@@ -1401,9 +1459,9 @@ function renderPrev(){
   if(!data.length){c.innerHTML='<div class="empty">📋<p>Sin encuestas.</p></div>';return;}
   let h='<div class="tw"><table><thead><tr><th>Fecha</th><th>Técnico</th><th>Cliente</th><th>Localidad</th><th>Satisfacción</th><th>Estética</th><th>Recomienda</th></tr></thead><tbody>';
   data.forEach(r=>{
-    const p=parseFloat(r.puntajeSat)||0;
+    const p=normSat(r);
     h+=`<tr><td>${esc(r.fecha)}</td><td>${esc(r.tecnico)}</td><td>${esc(r.cliente)}</td><td>${esc(r.localidad)}</td>
-      <td><span class="pill" style="background:${colorP(p)}22;color:${colorP(p)}">${p>0?p.toFixed(1)+'/5':'—'}</span></td>
+      <td><span class="pill" style="background:${colorP(p)}22;color:${colorP(p)}">${p>0?p.toFixed(0)+'%':'—'}</span></td>
       <td><span class="pill" style="background:${colorP(+r.s_estetica||0)}22;color:${colorP(+r.s_estetica||0)}">${r.s_estetica?r.s_estetica+'/5':'—'}</span></td>
       <td><span class="badge ${r.recomienda==='Sí'?'b-si':'b-no'}">${esc(r.recomienda||'—')}</span></td>
     </tr>`;
@@ -1610,9 +1668,9 @@ function renderPrev(){
   if(!data.length){c.innerHTML='<div class="empty">📋<p>Sin encuestas.</p></div>';return;}
   let h='<div class="tw"><table><thead><tr><th>Fecha</th><th>Técnico</th><th>Cliente</th><th>Localidad</th><th>Satisfacción</th><th>Estética</th><th>Recomienda</th></tr></thead><tbody>';
   data.forEach(r=>{
-    const p=parseFloat(r.puntajeSat)||0;
+    const p=normSat(r);
     h+=`<tr><td>${esc(r.fecha)}</td><td>${esc(r.tecnico)}</td><td>${esc(r.cliente)}</td><td>${esc(r.localidad)}</td>
-      <td><span class="pill" style="background:${colorP(p)}22;color:${colorP(p)}">${p>0?p.toFixed(1)+'/5':'—'}</span></td>
+      <td><span class="pill" style="background:${colorP(p)}22;color:${colorP(p)}">${p>0?p.toFixed(0)+'%':'—'}</span></td>
       <td><span class="pill" style="background:${colorP(+r.s_estetica||0)}22;color:${colorP(+r.s_estetica||0)}">${r.s_estetica?r.s_estetica+'/5':'—'}</span></td>
       <td><span class="badge ${r.recomienda==='Sí'?'b-si':'b-no'}">${esc(r.recomienda||'—')}</span></td>
     </tr>`;
